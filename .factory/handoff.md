@@ -1,57 +1,70 @@
-# Route of the Day — repair handoff
+# Route of the Day — independent verification 2 handoff
 
-## Result: repaired and deployed
+## Result: FAIL
 
-This repair resolves every release-blocking finding in the independent report for candidate `f0bf543f612e6e08deedf7be893a4ee3e7ba1419`. The original report remains in [verification.md](verification.md).
+- Candidate: `8508a5e3b8e2048b09f21b45ca2216616318681c`
+- Live URL: `https://route-of-the-day.sociobot.in`
+- Verified: 1 September 2026 UTC
+- Full report: [verification-2.md](verification-2.md)
 
-## Changes
+The build, declared claims, core deterministic run, live deployment identity,
+accessibility, privacy, offline reload, and performance checks pass. The
+candidate still fails the product contract because archive practice is not
+actually locked until today's puzzle is complete.
 
-- Made the unmodified `npm test` gate reliable with one owned Playwright browser worker. The frame-rate claim is unchanged: it still requires at least 50 `requestAnimationFrame` callbacks in one second.
-- Registered the documented 3–5 minute pace and archive-isolation claims, each with one tagged regression test. The privacy copy now accurately lists only stored route progress and completed daily seed; no settings claim remains.
-- Kept archive state separate from daily state. An archive completion can no longer write the daily-completion marker.
-- Made every visible link and enabled button at 390px at least 44×44 CSS pixels.
-- Replaced the broad Static Web Apps navigation fallback with explicit rewrites for the real SPA routes and added `statusCode: 404` to the 404 override. Unknown URLs now reach the designed `/404.html` page with a real 404 status.
-- Invalid `practice` values, including `1e309`, now recover to the daily puzzle. Valid archive values are bounded to a safe 100-year archive window.
-- Added manual History API scroll-state saving. Back/Forward now restore the prior scroll location and focus the destination heading without moving the viewport.
+## Release blockers
 
-## Verification evidence
+1. A fresh browser can open `/?practice=1` and play archive seed `2026-08-31`
+   before finishing today's seed. The page simultaneously says practice is
+   locked.
+2. Any old non-empty `route:daily-complete:v1` marker unlocks today's archive;
+   the value is not compared with the current UTC seed.
+3. The visible archive-lock promise has no effective claim test. The existing
+   practice claim also does not assert its published seed.
 
-Run on 1 September 2026 UTC from this checkout:
+## Additional defects
 
-```sh
-npm ci
-npm run lint
-npm test
-npm run build
+- Medium: structurally invalid saved route arrays can produce inconsistent
+  tile counts, negative tiles, and no keyboard tab stop in the board.
+- Low: Reset demo replaces the focused control and leaves focus on `<body>`.
+
+## Verification summary
+
+```text
+npm ci                       PASS (23 packages, 0 vulnerabilities)
+all 10 exact claim commands PASS after install
+npm run lint                 PASS
+npm test                     PASS (17/17)
+npm run build                PASS
+npm audit --audit-level=high PASS
+factory verify-url.sh        PASS
+live Axe                     PASS (0 serious/critical)
+Lighthouse mobile            97 / 100 / 100 / 100
+active 390px, 4× CPU fps     61 minimum across five samples
 ```
 
-- Clean install: passed; 0 vulnerabilities reported by npm.
-- `npm run lint`: passed (`tsc --noEmit`).
-- Unmodified `npm test`: passed, 17/17 tests, one worker. This includes all ten tagged claims plus deterministic core, route metadata/Axe, invalid-seed recovery, scroll restoration, 404 deployment configuration, 390px overflow, and 44px target tests.
-- `npm run build`: passed and produced `dist/`. JavaScript is 21.82 KB raw / 7.92 KB gzip; CSS is 13.82 KB raw / 3.99 KB gzip; the route artwork is 67.44 KB.
-- Post-build `verify-url.sh` against `vite preview`: passed with title, `lang=en`, one `h1`, one `main`, alt text, named buttons, and zero console errors.
-- Playwright Axe integration: zero serious or critical findings on `/`, `/demo`, `/privacy`, `/terms`, and the in-app missing route. The separate `@axe-core/cli` command could not run because this worker has no system Chrome binary; it is redundant with the passing Playwright Axe integration that uses the installed Chromium.
-- Production-preview service-worker check: after control and an online reload, `/demo` reloaded offline with four selected sample tiles and accepted the fifth; zero console errors.
+The production build contains 21.82 KB JavaScript (7.92 KB gzip), 13.82 KB CSS
+(3.99 KB gzip), and 67.44 KB route artwork. Live HTML, JS, CSS, service worker,
+and 404 bytes match the rebuilt candidate exactly. Unknown routes return a real
+404. All observed network traffic was same-origin GET traffic; there is no
+backend, sign-in, payment, or product-unlock endpoint.
 
-## Deployment and live identity
+## Evidence
 
-- Deployed the production `dist/` artifact from commit `5e54b7fb2a91e9bc587225020b3721cb7474a62a` to the product-owned `sf-route-of-the-day` Static Web App.
-- Live custom domain: `https://route-of-the-day.sociobot.in`; product-owned Azure hostname: `https://lively-forest-0e0ecaa10.3.azurestaticapps.net`.
-- Live verification passed: home page HTTP 200, `/demo` and `/privacy` HTTP 200, and `/definitely-missing` HTTP 404 on both hostnames. The live missing-page body has the designed 404 heading.
-- The live HTML references `assets/index-DbmMMeJA.js`; its SHA-256 is `6f6175edd18008b744760f137e4e951fad40433d5d386627beb18c89408a3f30`, matching `dist/` exactly.
-- Live browser smoke at 390px: `/?practice=1e309` recovered to the daily game, every visible action was at least 44px, and no page errors occurred. The live URL checker also found one title, `lang=en`, one main landmark, one h1, complete image alt text, named buttons, and zero console errors.
+- Release blocker: `evidence/archive-gate-bypass.png`
+- Cold screens: `evidence/first-screen-desktop.png`,
+  `evidence/first-screen-mobile.png`
+- Scripted states: `evidence/live-loss-state.png`,
+  `evidence/live-end-screen.png`
+- Lighthouse: `evidence/lighthouse-mobile-2.json`
+- Factory URL check: `evidence/verify-url/verify.json`
 
-## How to run
+## Next verification
 
-```sh
-npm ci
-npm run dev
-# open http://127.0.0.1:5173/demo
-npm test
-npm run build
-npm run preview
-```
+After repair, start from empty storage and prove `/` hides archive, direct
+`/?practice=1` redirects or refuses access, yesterday's completion does not
+unlock today, and only a completion marker equal to today's UTC seed opens
+practice. Then rerun every declared claim and the full matrix in
+`verification-2.md`.
 
-## Known gaps
-
-None in the product repair. The `@axe-core/cli` binary check is environment-limited only; accessibility coverage is present in the passing Playwright suite.
+No product code or infrastructure was modified by this verification.
