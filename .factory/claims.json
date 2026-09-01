@@ -1,0 +1,58 @@
+[
+  {
+    "id": "demo-ready",
+    "claim": "The demo opens a half-finished sample puzzle and resets without changing daily progress.",
+    "where": "landing action, demo banner, README",
+    "test": "npm test -- --grep @claim:demo-ready",
+    "sandbox": "fresh browser context at /demo; assert four selected sample tiles, reset, demo-prefixed session keys, and empty local storage"
+  },
+  {
+    "id": "daily-seed",
+    "claim": "Everyone receives the same puzzle from the published UTC daily seed.",
+    "where": "landing, puzzle seed, README",
+    "test": "npm test -- --grep @claim:daily-seed",
+    "sandbox": "two fresh browser contexts; assert the UTC date seed and identical generated solutions"
+  },
+  {
+    "id": "local-progress",
+    "claim": "Progress stays in this browser and the game sends no cross-origin requests.",
+    "where": "landing facts, privacy page, README",
+    "test": "npm test -- --grep @claim:local-progress",
+    "sandbox": "fresh browser context; place a tile, reload, assert restored route, and inspect every outgoing request origin"
+  },
+  {
+    "id": "complete-run",
+    "claim": "A daily route reaches an end screen, opens archive practice, and can be restarted.",
+    "where": "game, how it works, README",
+    "test": "npm test -- --grep @claim:complete-run",
+    "sandbox": "fresh browser context; play the published solution, assert end screen and archive action, restart, reload, and assert archive access"
+  },
+  {
+    "id": "multi-input",
+    "claim": "The puzzle works with keyboard and touch input.",
+    "where": "game instructions, README",
+    "test": "npm test -- --grep @claim:multi-input",
+    "sandbox": "fresh keyboard context and a separate 390px touch context; complete the published route in each"
+  },
+  {
+    "id": "frame-rate",
+    "claim": "Route rendering sustains at least 50 frames per second in the test browser.",
+    "where": "README, handoff",
+    "test": "npm test -- --grep @claim:frame-rate",
+    "sandbox": "fresh demo page; count requestAnimationFrame callbacks over one second and require at least 50"
+  },
+  {
+    "id": "free-access",
+    "claim": "The daily puzzle is free and starts without an account or payment step.",
+    "where": "landing facts, README",
+    "test": "npm test -- --grep @claim:free-access",
+    "sandbox": "fresh browser context; assert the playable grid is visible with no account fields, buy action, subscription, or payment step"
+  },
+  {
+    "id": "offline-play",
+    "claim": "A puzzle that is already loaded remains playable if the browser goes offline.",
+    "where": "offline status, README",
+    "test": "npm test -- --grep @claim:offline-play",
+    "sandbox": "new browser context; load /demo, set that context offline, place the next route tile, and assert progress"
+  }
+]
