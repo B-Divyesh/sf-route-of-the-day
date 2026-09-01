@@ -1,6 +1,6 @@
 # Route of the Day — repair handoff
 
-## Result: repaired and ready to deploy
+## Result: repaired and deployed
 
 This repair resolves every release-blocking finding in the independent report for candidate `f0bf543f612e6e08deedf7be893a4ee3e7ba1419`. The original report remains in [verification.md](verification.md).
 
@@ -32,6 +32,14 @@ npm run build
 - Post-build `verify-url.sh` against `vite preview`: passed with title, `lang=en`, one `h1`, one `main`, alt text, named buttons, and zero console errors.
 - Playwright Axe integration: zero serious or critical findings on `/`, `/demo`, `/privacy`, `/terms`, and the in-app missing route. The separate `@axe-core/cli` command could not run because this worker has no system Chrome binary; it is redundant with the passing Playwright Axe integration that uses the installed Chromium.
 - Production-preview service-worker check: after control and an online reload, `/demo` reloaded offline with four selected sample tiles and accepted the fifth; zero console errors.
+
+## Deployment and live identity
+
+- Deployed the production `dist/` artifact from commit `5e54b7fb2a91e9bc587225020b3721cb7474a62a` to the product-owned `sf-route-of-the-day` Static Web App.
+- Live custom domain: `https://route-of-the-day.sociobot.in`; product-owned Azure hostname: `https://lively-forest-0e0ecaa10.3.azurestaticapps.net`.
+- Live verification passed: home page HTTP 200, `/demo` and `/privacy` HTTP 200, and `/definitely-missing` HTTP 404 on both hostnames. The live missing-page body has the designed 404 heading.
+- The live HTML references `assets/index-DbmMMeJA.js`; its SHA-256 is `6f6175edd18008b744760f137e4e951fad40433d5d386627beb18c89408a3f30`, matching `dist/` exactly.
+- Live browser smoke at 390px: `/?practice=1e309` recovered to the daily game, every visible action was at least 44px, and no page errors occurred. The live URL checker also found one title, `lang=en`, one main landmark, one h1, complete image alt text, named buttons, and zero console errors.
 
 ## How to run
 
