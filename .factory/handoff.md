@@ -10,7 +10,7 @@ This repair resolves every release-blocking finding in the independent report fo
 - Registered the documented 3–5 minute pace and archive-isolation claims, each with one tagged regression test. The privacy copy now accurately lists only stored route progress and completed daily seed; no settings claim remains.
 - Kept archive state separate from daily state. An archive completion can no longer write the daily-completion marker.
 - Made every visible link and enabled button at 390px at least 44×44 CSS pixels.
-- Added `statusCode: 404` to the Static Web Apps 404 response override while retaining the designed `/404.html` page.
+- Replaced the broad Static Web Apps navigation fallback with explicit rewrites for the real SPA routes and added `statusCode: 404` to the 404 override. Unknown URLs now reach the designed `/404.html` page with a real 404 status.
 - Invalid `practice` values, including `1e309`, now recover to the daily puzzle. Valid archive values are bounded to a safe 100-year archive window.
 - Added manual History API scroll-state saving. Back/Forward now restore the prior scroll location and focus the destination heading without moving the viewport.
 

@@ -201,8 +201,17 @@ test('Back restores the prior landing scroll position while moving focus to its 
 
 test('static deployment configuration serves missing routes with HTTP 404', () => {
   const config = JSON.parse(readFileSync(new URL('../public/staticwebapp.config.json', import.meta.url), 'utf8')) as {
+    routes?: Array<{ route?: string; rewrite?: string }>;
+    navigationFallback?: unknown;
     responseOverrides?: Record<string, { rewrite?: string; statusCode?: number }>;
   };
+  expect(config.navigationFallback).toBeUndefined();
+  expect(config.routes?.filter((route) => ['/demo', '/privacy', '/terms'].includes(route.route ?? '')))
+    .toEqual([
+      { route: '/demo', rewrite: '/index.html' },
+      { route: '/privacy', rewrite: '/index.html' },
+      { route: '/terms', rewrite: '/index.html' },
+    ]);
   expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
   const page = readFileSync(new URL('../public/404.html', import.meta.url), 'utf8');
   expect(page).toContain('<h1>Find your way back to the route</h1>');
