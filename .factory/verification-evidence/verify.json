@@ -1,0 +1,14 @@
+{
+  "url": "https://route-of-the-day.sociobot.in",
+  "loadMs": 726,
+  "errors": [],
+  "a11y": {
+    "title": "Route of the Day — Draw a daily route",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1621
+  }
+}
