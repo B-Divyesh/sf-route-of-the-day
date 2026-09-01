@@ -1,0 +1,32 @@
+{
+  "slug": "route-of-the-day",
+  "title": "Route of the Day",
+  "territory": "games-creative",
+  "user": "Daily-puzzle regulars who want one fresh five-minute spatial route puzzle plus an optional archive and practice mode, without another word or chess clone.",
+  "summary": "Draw one short route across a new spatial puzzle each day.",
+  "evidence": [
+    {
+      "url": "https://hn.algolia.com/api/v1/items/49212848",
+      "date": "2026-08-07",
+      "quote_or_summary": "Ask HN explicitly requests free, web-based daily games with a new puzzle every day and lists mostly word games, signaling demand for more variety in that habit."
+    },
+    {
+      "url": "https://gerrymandle.cc/",
+      "date": "2026-09-01 (accessed)",
+      "quote_or_summary": "Gerrymandle is a live daily map-drawing puzzle; its HN discussion includes requests for a more approachable interactive tutorial."
+    }
+  ],
+  "recurrence": "An explicit 2026 request for additions to a daily-web-game routine, plus engagement with a new non-word daily puzzle, indicates a repeat habit rather than a one-off novelty.",
+  "current_workaround": "Cycle through Wordle descendants, chess puzzles, and daily sites that often offer only one domain or block practice behind completion.",
+  "incumbents_and_gap": "NYT Games, Puzzmo, and Gerrymandle demonstrate the ritual, but the field is crowded with language and number puzzles and sparse in accessible spatial routing.",
+  "smallest_useful_product": "A deterministic daily grid where players lay 6–10 route tiles to connect landmarks under one changing constraint; after completion, unlimited non-scored archived seeds unlock.",
+  "success_measure": "25% seven-day return among anonymous daily solvers and at least 20% of first-day finishers try an archive puzzle.",
+  "artifact_class": "browser-game",
+  "monetization": "free",
+  "constraints": "Publish seed and solution deterministically; provide color-independent symbols and reduced-motion mode; avoid real electoral data or political claims.",
+  "est_build_effort": "S",
+  "scale": "small (default)",
+  "why_distinct": "A route-building spatial puzzle fills a daily-web-game gap without copying Wordle’s answer-checking loop.",
+  "confidence": 4,
+  "state": "RESEARCHED"
+}
