@@ -49,6 +49,39 @@ export function samePosition(a: Position, b: Position): boolean {
   return a.row === b.row && a.col === b.col;
 }
 
+export function isValidPath(puzzle: Puzzle, value: unknown): value is Position[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > puzzle.solution.length) return false;
+
+  const visited = new Set<string>();
+  for (let index = 0; index < value.length; index += 1) {
+    const candidate = value[index];
+    if (
+      typeof candidate !== 'object'
+      || candidate === null
+      || !('row' in candidate)
+      || !('col' in candidate)
+      || !Number.isInteger(candidate.row)
+      || !Number.isInteger(candidate.col)
+    ) return false;
+
+    const position = candidate as Position;
+    if (position.row < 0 || position.col < 0 || position.row >= puzzle.size || position.col >= puzzle.size) return false;
+    if (puzzle.blocked.some((blocked) => samePosition(blocked, position))) return false;
+    const key = positionKey(position);
+    if (visited.has(key)) return false;
+    visited.add(key);
+
+    if (index === 0) {
+      if (!samePosition(position, puzzle.start)) return false;
+      continue;
+    }
+    const previous = value[index - 1] as Position;
+    if (Math.abs(previous.row - position.row) + Math.abs(previous.col - position.col) !== 1) return false;
+  }
+
+  return true;
+}
+
 export function hashSeed(value: string): number {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {

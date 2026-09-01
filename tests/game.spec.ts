@@ -25,17 +25,23 @@ test('generated puzzles are deterministic and solvable', async () => {
 });
 
 test('@claim:demo-ready demo opens half-finished and resets its isolated sample', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('route:test-sentinel', 'daily-progress'));
   await page.goto('/demo');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.locator('.cell.selected')).toHaveCount(4);
   const path = await solution(page);
   await page.locator(`.cell[data-row="${path[4].row}"][data-col="${path[4].col}"]`).click();
   await expect(page.locator('.cell.selected')).toHaveCount(5);
-  await page.getByRole('button', { name: 'Reset demo' }).click();
+  const resetDemo = page.getByRole('button', { name: 'Reset demo' });
+  await resetDemo.focus();
+  await resetDemo.press('Enter');
   await expect(page.locator('.cell.selected')).toHaveCount(4);
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toBeFocused();
   const keys = await page.evaluate(() => Object.keys(sessionStorage));
   expect(keys.every((key) => key.startsWith('demo:'))).toBe(true);
-  expect(await page.evaluate(() => Object.keys(localStorage).length)).toBe(0);
+  expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)))).toEqual({
+    'route:test-sentinel': 'daily-progress',
+  });
 });
 
 test('@claim:daily-seed the daily seed is stable for the UTC date', async ({ browser }) => {
@@ -89,23 +95,53 @@ test('@claim:complete-run a daily route reaches the end screen and restart clear
   await expect(page.getByRole('link', { name: 'Open practice routes' })).toBeVisible();
 });
 
-test('@claim:practice-progress archive play leaves saved daily progress unchanged', async ({ page }) => {
+test('@claim:archive-gate only today’s exact completion marker opens archive practice', async ({ page }) => {
+  const today = dailySeed();
+  const yesterday = new Date(`${today}T00:00:00Z`);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const publishedPracticeSeed = dailySeed(yesterday);
+
+  await page.goto('/?practice=1');
+  await expect(page.getByRole('heading', { name: 'Draw today’s route', level: 1 })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-seed', today);
+  await expect(page.locator('.archive-mode')).toHaveCount(0);
+
+  await page.evaluate((seed) => localStorage.setItem('route:daily-complete:v1', seed), publishedPracticeSeed);
+  await page.goto('/?practice=1');
+  await expect(page.getByRole('heading', { name: 'Draw today’s route', level: 1 })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('link', { name: 'Open practice routes' })).toHaveCount(0);
+
+  await page.evaluate((seed) => localStorage.setItem('route:daily-complete:v1', seed), today);
+  await page.goto('/?practice=1');
+  await expect(page.getByRole('heading', { name: 'Draw an archive route', level: 1 })).toBeVisible();
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-seed', publishedPracticeSeed);
+  await expect(page.locator('.archive-mode')).toBeVisible();
+});
+
+test('@claim:practice-progress archive play uses its published seed and leaves saved daily progress unchanged', async ({ page }) => {
   await page.goto('/');
   const dailyPath = await solution(page);
-  const dailySeed = await page.locator('[data-game]').getAttribute('data-seed');
+  const todaySeed = await page.locator('[data-game]').getAttribute('data-seed');
+  expect(todaySeed).toBeTruthy();
   await page.locator(`.cell[data-row="${dailyPath[1].row}"][data-col="${dailyPath[1].col}"]`).click();
+  await page.evaluate((seed) => localStorage.setItem('route:daily-complete:v1', seed ?? ''), todaySeed);
   const before = await page.evaluate((seed) => ({
     path: localStorage.getItem(`route:path:v1:${seed}`),
     complete: localStorage.getItem('route:daily-complete:v1'),
-  }), dailySeed);
+  }), todaySeed);
 
   await page.goto('/?practice=1');
+  const archiveDate = new Date(`${todaySeed}T00:00:00Z`);
+  archiveDate.setUTCDate(archiveDate.getUTCDate() - 1);
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-seed', dailySeed(archiveDate));
   await solveByClick(page);
   await expect(page.getByRole('heading', { name: 'Route complete', level: 3 })).toBeVisible();
   const after = await page.evaluate((seed) => ({
     path: localStorage.getItem(`route:path:v1:${seed}`),
     complete: localStorage.getItem('route:daily-complete:v1'),
-  }), dailySeed);
+  }), todaySeed);
   expect(after).toEqual(before);
 });
 
@@ -178,6 +214,38 @@ test('invalid practice seeds recover to the daily route without a page error', a
   expect(practiceIndex('0')).toBe(0);
   expect(practiceIndex('1e309')).toBe(0);
   expect(practiceIndex('999999')).toBe(36_500);
+});
+
+test('invalid saved route arrays reset safely and leave a keyboard focus stop on the board', async ({ page }) => {
+  await page.goto('/');
+  const puzzle = await page.evaluate(() => window.__ROUTE_PUZZLE__);
+  expect(puzzle).toBeTruthy();
+  if (!puzzle) return;
+  const nonAdjacent = Array.from({ length: puzzle.size * puzzle.size }, (_, index) => ({
+    row: Math.floor(index / puzzle.size), col: index % puzzle.size,
+  })).find((position) => Math.abs(position.row - puzzle.start.row) + Math.abs(position.col - puzzle.start.col) > 1);
+  expect(nonAdjacent).toBeTruthy();
+  if (!nonAdjacent) return;
+  const invalidPaths: unknown[] = [
+    [puzzle.start, { row: 99, col: 99 }],
+    [puzzle.start, nonAdjacent],
+    [puzzle.start, puzzle.blocked[0]],
+    [puzzle.start, puzzle.solution[1], puzzle.start],
+    [...puzzle.solution, puzzle.solution[puzzle.solution.length - 1]],
+    [puzzle.start, { row: '1', col: 1 }],
+  ];
+
+  for (const invalidPath of invalidPaths) {
+    await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), {
+      key: `route:path:v1:${puzzle.seed}`,
+      value: invalidPath,
+    });
+    await page.reload();
+    await expect(page.locator('.cell.selected')).toHaveCount(1);
+    await expect(page.locator('[data-tiles-left]')).toHaveText(String(puzzle.solution.length - 1));
+    await expect(page.locator('.cell[tabindex="0"]')).toHaveCount(1);
+    await expect(page.locator(`.cell[data-row="${puzzle.start.row}"][data-col="${puzzle.start.col}"]`)).toHaveAttribute('tabindex', '0');
+  }
 });
 
 test('Back restores the prior landing scroll position while moving focus to its heading', async ({ page }) => {

@@ -1,4 +1,4 @@
-const CACHE = 'route-of-the-day-v1';
+const CACHE = 'route-of-the-day-v2';
 const SHELL = ['/', '/demo', '/privacy', '/terms', '/assets/route-landscape.webp', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {

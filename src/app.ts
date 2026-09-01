@@ -6,6 +6,7 @@ import {
   describeRule,
   practiceIndex,
   isComplete,
+  isValidPath,
   positionKey,
   routeCode,
   samePosition,
@@ -104,11 +105,22 @@ function safePath(storage: Storage, key: string, puzzle: Puzzle, fallback: Posit
   try {
     const value = storage.getItem(key);
     if (!value) return fallback;
-    const parsed = JSON.parse(value) as Position[];
-    if (!Array.isArray(parsed) || parsed.length === 0 || !samePosition(parsed[0], puzzle.start)) return fallback;
+    const parsed: unknown = JSON.parse(value);
+    if (!isValidPath(puzzle, parsed)) {
+      storage.removeItem(key);
+      return fallback;
+    }
     return parsed;
   } catch {
     return fallback;
+  }
+}
+
+function storedValue(storage: Storage, key: string): string | null {
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
   }
 }
 
@@ -130,7 +142,7 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
   const path = safePath(storage, key, puzzle, fallback);
   const complete = isComplete(puzzle, path);
   const tilesLeft = puzzle.solution.length - path.length;
-  const nextPractice = practiceIndex(new URLSearchParams(location.search).get('practice')) + 1;
+  const nextPractice = practice ? practiceIndex(new URLSearchParams(location.search).get('practice')) + 1 : 1;
   const focusPosition = path[path.length - 1];
   window.__ROUTE_PUZZLE__ = puzzle;
 
@@ -187,13 +199,16 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
 
 function landingPage(): string {
   const params = new URLSearchParams(location.search);
-  const practiceNumber = practiceIndex(params.get('practice'));
-  const practice = practiceNumber > 0;
+  const requestedPractice = practiceIndex(params.get('practice'));
+  const todaySeed = dailySeed();
+  const completedDaily = storedValue(localStorage, 'route:daily-complete:v1') === todaySeed;
+  const practice = requestedPractice > 0 && completedDaily;
+  const practiceNumber = practice ? requestedPractice : 0;
+  if (requestedPractice > 0 && !completedDaily) history.replaceState(history.state, '', '/');
   const archiveDate = new Date();
   archiveDate.setUTCDate(archiveDate.getUTCDate() - practiceNumber);
-  const seed = practice ? dailySeed(archiveDate) : dailySeed();
+  const seed = practice ? dailySeed(archiveDate) : todaySeed;
   const puzzle = createPuzzle(seed, practice);
-  const completedDaily = Boolean(localStorage.getItem('route:daily-complete:v1'));
 
   return `${header(false)}
     <main id="main">
@@ -282,7 +297,15 @@ function bindGame(): void {
   const fallback = game.dataset.demo === 'true' ? puzzle.solution.slice(0, 4) : [puzzle.start];
   let path = safePath(storage, key, puzzle, fallback);
   let pointerDrawing = false;
-  let focused = puzzle.start;
+  let focused = path[path.length - 1];
+
+  const focusCell = (position: Position): void => {
+    const cell = game.querySelector<HTMLButtonElement>(`.cell[data-row="${position.row}"][data-col="${position.col}"]`);
+    if (!cell || cell.disabled) return;
+    game.querySelectorAll<HTMLButtonElement>('.cell').forEach((candidate) => { candidate.tabIndex = -1; });
+    cell.tabIndex = 0;
+    cell.focus();
+  };
 
   const update = (message: string, completed = false): void => {
     game.querySelectorAll<HTMLButtonElement>('.cell').forEach((cell) => {
@@ -325,7 +348,7 @@ function bindGame(): void {
     path = game.dataset.demo === 'true' ? puzzle.solution.slice(0, 4) : [puzzle.start];
     focused = path[path.length - 1];
     update(game.dataset.demo === 'true' ? 'The sample route is reset. Continue from the orange tile.' : 'The route is clear. Choose a square beside Start.');
-    game.querySelector<HTMLButtonElement>(`.cell[data-row="${focused.row}"][data-col="${focused.col}"]`)?.focus();
+    focusCell(focused);
   };
 
   game.querySelectorAll<HTMLButtonElement>('.cell:not(:disabled)').forEach((cell) => {
@@ -364,9 +387,7 @@ function bindGame(): void {
     const nextCell = game.querySelector<HTMLButtonElement>(`.cell[data-row="${next.row}"][data-col="${next.col}"]`);
     if (nextCell && !nextCell.disabled) {
       focused = next;
-      game.querySelectorAll<HTMLButtonElement>('.cell').forEach((cell) => { cell.tabIndex = -1; });
-      nextCell.tabIndex = 0;
-      nextCell.focus();
+      focusCell(next);
     }
   });
 }
@@ -394,7 +415,7 @@ function bindGlobal(): void {
   document.querySelector('[data-reset-demo]')?.addEventListener('click', () => {
     Object.keys(sessionStorage).filter((key) => key.startsWith('demo:')).forEach((key) => sessionStorage.removeItem(key));
     render(false);
-    document.querySelector<HTMLElement>('[data-status]')?.focus();
+    document.querySelector<HTMLButtonElement>('[data-reset-demo]')?.focus();
   });
 }
 

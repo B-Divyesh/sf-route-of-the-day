@@ -35,11 +35,18 @@
     "sandbox": "fresh browser context; play the published solution, assert end screen and archive action, restart, reload, and assert archive access"
   },
   {
+    "id": "archive-gate",
+    "claim": "Archive practice opens only after today’s UTC daily route is complete.",
+    "where": "landing archive lock, README",
+    "test": "npm test -- --grep @claim:archive-gate",
+    "sandbox": "fresh browser context; deny direct practice with no marker and yesterday’s marker, then allow it only when the marker exactly matches today’s UTC seed"
+  },
+  {
     "id": "practice-progress",
     "claim": "Practice puzzles use published seeds and do not affect the daily route.",
     "where": "landing archive section, README",
     "test": "npm test -- --grep @claim:practice-progress",
-    "sandbox": "save a partial daily route, play an archive route, and assert the daily storage key and completion marker are unchanged"
+    "sandbox": "save a partial daily route, set today’s completion marker, assert practice=1 publishes yesterday’s UTC seed, complete it, and assert daily storage is unchanged"
   },
   {
     "id": "multi-input",

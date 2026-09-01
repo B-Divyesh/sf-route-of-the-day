@@ -12,7 +12,7 @@ Select adjacent squares to connect the circle to the diamond. Use the exact tile
 
 The puzzle works with keyboard and touch input. Pointer input uses the same route rules. A loaded puzzle remains playable if the browser goes offline.
 
-Completing the daily route opens non-scored archive practice. Each archive route uses the published seed for an earlier UTC date.
+Completing today’s UTC daily route opens non-scored archive practice. An earlier completion does not open it. Each archive route uses the published seed for an earlier UTC date.
 Practice progress is kept separate from the daily route.
 
 ## Try the isolated demo
