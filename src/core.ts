@@ -172,6 +172,20 @@ export function dailySeed(date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
+export function practiceIndex(value: string | null): number {
+  if (value === null || value.trim() === '') return 0;
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < 1) return 0;
+  // Keep archival dates inside the supported JavaScript Date range while
+  // allowing decades of published daily routes.
+  return Math.min(parsed, 36_500);
+}
+
+export function estimatedRoundSeconds(puzzle: Puzzle): number {
+  // This is a documented pace target: one considered move per route tile.
+  return puzzle.solution.length * 20;
+}
+
 export function routeCode(path: Position[]): string {
   return path.map(({ row, col }) => `${String.fromCharCode(65 + col)}${row + 1}`).join('–');
 }

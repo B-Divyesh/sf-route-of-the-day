@@ -2,7 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  // The frame-rate claim samples requestAnimationFrame. Keep one owned browser
+  // worker for the whole default gate so another test cannot steal that frame.
+  fullyParallel: false,
+  workers: 1,
   timeout: 30_000,
   expect: { timeout: 5_000 },
   reporter: [['list']],

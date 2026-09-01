@@ -1,6 +1,6 @@
 # Route of the Day
 
-Draw one short route across a new spatial puzzle each day. A round takes about three to five minutes.
+Draw one short route across a new spatial puzzle each day. A round is designed to take three to five minutes.
 
 Route of the Day is for daily-puzzle players who want a spatial challenge. It is free and starts without an account or payment step.
 
@@ -13,6 +13,7 @@ Select adjacent squares to connect the circle to the diamond. Use the exact tile
 The puzzle works with keyboard and touch input. Pointer input uses the same route rules. A loaded puzzle remains playable if the browser goes offline.
 
 Completing the daily route opens non-scored archive practice. Each archive route uses the published seed for an earlier UTC date.
+Practice progress is kept separate from the daily route.
 
 ## Try the isolated demo
 

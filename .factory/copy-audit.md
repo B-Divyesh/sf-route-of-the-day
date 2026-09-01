@@ -7,7 +7,7 @@ Audited 1 September 2026. Counts split hyphenated terms as one word. Interface l
 | Copy | Words | Result |
 | --- | ---: | --- |
 | A new spatial puzzle every day | 6 | Pass |
-| Draw today’s route in five minutes | 6 | Pass |
+| Draw today’s route | 3 | Pass |
 | For daily-puzzle players who want a short spatial challenge without words, scores, or an account. | 15 | Pass |
 | Try it with sample data | 5 | Pass |
 | Opens a half-finished sample puzzle. | 5 | Pass |
@@ -20,7 +20,7 @@ Audited 1 September 2026. Counts split hyphenated terms as one word. Interface l
 | Keyboard: use Arrow keys, then Enter or Space. | 8 | Pass |
 | Backspace removes a tile. | 4 | Pass |
 
-Read-aloud check: “Draw today’s route in five minutes. Try it with sample data.” This states the job and first action in one breath.
+Read-aloud check: “Draw today’s route. Try it with sample data.” This states the job and first action in one breath.
 
 ## Remaining landing page
 

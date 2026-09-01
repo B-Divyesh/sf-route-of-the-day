@@ -21,7 +21,7 @@ html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; background-color: var(--ink); background-image: repeating-radial-gradient(ellipse at 12% 18%, transparent 0 14px, rgba(245,240,228,.035) 15px 16px, transparent 17px 30px); font-size: 16px; line-height: 1.55; }
 body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px); background-size: 32px 32px; z-index: -1; }
 button, a { font: inherit; }
-a { color: var(--paper); text-decoration-color: var(--yellow); text-underline-offset: 4px; }
+a { color: var(--paper); min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; text-decoration-color: var(--yellow); text-underline-offset: 4px; }
 button { color: inherit; }
 button:focus-visible, a:focus-visible, [tabindex="-1"]:focus-visible { outline: 3px solid var(--yellow); outline-offset: 4px; }
 h1, h2, h3, p { margin-top: 0; }

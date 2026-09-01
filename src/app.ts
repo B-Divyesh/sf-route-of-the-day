@@ -4,6 +4,7 @@ import {
   createPuzzle,
   dailySeed,
   describeRule,
+  practiceIndex,
   isComplete,
   positionKey,
   routeCode,
@@ -129,11 +130,11 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
   const path = safePath(storage, key, puzzle, fallback);
   const complete = isComplete(puzzle, path);
   const tilesLeft = puzzle.solution.length - path.length;
-  const nextPractice = Math.max(1, (Number(new URLSearchParams(location.search).get('practice')) || 0) + 1);
+  const nextPractice = practiceIndex(new URLSearchParams(location.search).get('practice')) + 1;
   const focusPosition = path[path.length - 1];
   window.__ROUTE_PUZZLE__ = puzzle;
 
-  return `<section class="game-shell" aria-labelledby="puzzle-heading" data-game data-seed="${escapeHtml(puzzle.seed)}" data-solution="${escapeHtml(JSON.stringify(puzzle.solution))}" data-storage-key="${escapeHtml(key)}" data-demo="${demo}">
+  return `<section class="game-shell" aria-labelledby="puzzle-heading" data-game data-seed="${escapeHtml(puzzle.seed)}" data-solution="${escapeHtml(JSON.stringify(puzzle.solution))}" data-storage-key="${escapeHtml(key)}" data-demo="${demo}" data-practice="${practice}">
     <div class="game-heading">
       <div>
         <p class="section-kicker">${escapeHtml(puzzle.label)}</p>
@@ -186,7 +187,7 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
 
 function landingPage(): string {
   const params = new URLSearchParams(location.search);
-  const practiceNumber = Math.max(0, Number(params.get('practice')) || 0);
+  const practiceNumber = practiceIndex(params.get('practice'));
   const practice = practiceNumber > 0;
   const archiveDate = new Date();
   archiveDate.setUTCDate(archiveDate.getUTCDate() - practiceNumber);
@@ -199,7 +200,7 @@ function landingPage(): string {
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">${practice ? 'Practice with an archived daily seed' : 'A new spatial puzzle every day'}</p>
-          <h1 tabindex="-1">${practice ? 'Draw an archive route in five minutes' : 'Draw today’s route in five minutes'}</h1>
+          <h1 tabindex="-1">${practice ? 'Draw an archive route' : 'Draw today’s route'}</h1>
           <p class="hero-summary">For daily-puzzle players who want a short spatial challenge without words, scores, or an account.</p>
           <div class="hero-action"><a class="primary-button" href="/demo" data-route>Try it with sample data</a><span>Opens a half-finished sample puzzle.</span></div>
           <ul class="plain-facts" aria-label="Game facts"><li>Free to play</li><li>No account</li><li>Progress stays in this browser</li></ul>
@@ -241,7 +242,7 @@ function demoPage(): string {
 function privacyPage(): string {
   return `${header(false)}<main id="main" class="text-page"><p class="eyebrow">Privacy</p><h1 tabindex="-1">See what stays in your browser</h1>
     <p class="lede">Route of the Day has no accounts, analytics, advertising, or third-party scripts.</p>
-    <h2>Data stored on this device</h2><p>The game stores your current route, completed daily seed, and settings in browser storage. Demo progress uses a separate session key beginning with <code>demo:</code>.</p>
+    <h2>Data stored on this device</h2><p>The game stores your current route and completed daily seed in browser storage. Demo progress uses a separate session key beginning with <code>demo:</code>.</p>
     <h2>Data sent over the network</h2><p>Your browser requests the game files from this site. Game progress does not leave your device.</p>
     <h2>Delete your progress</h2><p>Clear this site’s browser storage to remove all saved progress. You can also restart any puzzle from its route panel.</p>
     <h2>Contact</h2><p>Questions can be sent to <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p>
@@ -303,7 +304,7 @@ function bindGame(): void {
     finish?.classList.toggle('hidden', !completed);
     persistPath(game, puzzle, path);
     if (completed) {
-      if (game.dataset.demo !== 'true' && !puzzle.seed.startsWith('practice-')) localStorage.setItem('route:daily-complete:v1', puzzle.seed);
+      if (game.dataset.demo !== 'true' && game.dataset.practice !== 'true') localStorage.setItem('route:daily-complete:v1', puzzle.seed);
       finish?.focus();
     }
   };
@@ -370,6 +371,13 @@ function bindGame(): void {
   });
 }
 
+type RouteHistoryState = { routeScroll?: { x: number; y: number } };
+
+function rememberScrollPosition(): void {
+  const state = (history.state ?? {}) as RouteHistoryState;
+  history.replaceState({ ...state, routeScroll: { x: window.scrollX, y: window.scrollY } }, '', location.href);
+}
+
 function bindGlobal(): void {
   document.querySelectorAll<HTMLAnchorElement>('a[data-route]').forEach((anchor) => anchor.addEventListener('click', (event) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || anchor.target) return;
@@ -379,7 +387,8 @@ function bindGlobal(): void {
     if (anchor.hasAttribute('data-start-real')) {
       Object.keys(sessionStorage).filter((key) => key.startsWith('demo:')).forEach((key) => sessionStorage.removeItem(key));
     }
-    history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    rememberScrollPosition();
+    history.pushState({ routeScroll: { x: 0, y: 0 } } satisfies RouteHistoryState, '', `${url.pathname}${url.search}${url.hash}`);
     render(true);
   }));
   document.querySelector('[data-reset-demo]')?.addEventListener('click', () => {
@@ -397,7 +406,7 @@ function updateMeta(path: string): void {
   canonical?.setAttribute('href', `https://route-of-the-day.sociobot.in${path === '/' ? '/' : path}`);
 }
 
-function render(focusHeading = false): void {
+function render(focusHeading = false, restoreScroll = false): void {
   const path = location.pathname.replace(/\/$/, '') || '/';
   updateMeta(path);
   app.innerHTML = path === '/' ? landingPage()
@@ -408,12 +417,20 @@ function render(focusHeading = false): void {
   bindGlobal();
   bindGame();
   if (location.hash === '#how') requestAnimationFrame(() => document.querySelector('#how')?.scrollIntoView());
-  if (focusHeading) requestAnimationFrame(() => document.querySelector<HTMLElement>('h1')?.focus());
+  else if (restoreScroll) {
+    const { x = 0, y = 0 } = ((history.state ?? {}) as RouteHistoryState).routeScroll ?? {};
+    requestAnimationFrame(() => {
+      window.scrollTo(x, y);
+      document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
+    });
+  } else if (focusHeading) requestAnimationFrame(() => document.querySelector<HTMLElement>('h1')?.focus());
   const announcement = document.querySelector<HTMLElement>('#route-announcer');
   if (announcement) announcement.textContent = document.title;
 }
 
-window.addEventListener('popstate', () => render(true));
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+rememberScrollPosition();
+window.addEventListener('popstate', () => render(true, true));
 window.addEventListener('offline', () => {
   const status = document.querySelector<HTMLElement>('[data-status]');
   if (status) status.textContent = 'You are offline. The loaded puzzle still works.';
