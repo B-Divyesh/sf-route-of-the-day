@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://route-of-the-day.sociobot.in/sitemap.xml
