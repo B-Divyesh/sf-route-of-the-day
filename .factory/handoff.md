@@ -1,32 +1,29 @@
-# Route of the Day — review 1 handoff
+# Route of the Day — polish 1 handoff
 
-## Result: FAIL
+## Result: PASS
 
-This review changed no product code or deployment. It added the committed adversarial report at [review-1.md](review-1.md).
+Repair commit: `be2e78c846e6a8a0a732b0d10add3c65d48e4dc1`.
 
-## Verified
+## Shipped
 
-- Cold live desktop and 390px first-read checks are clear and tryable.
-- `/demo` opens half-finished, resets, isolates `demo:` session storage, leaves daily storage untouched, and clears demo storage when starting for real.
-- Fresh and stale archive markers are denied; today’s marker opens archive.
-- All 11 declared claim commands passed after `npm ci`.
-- `npm test` passed 19 tests; lint, build, and high-severity audit passed.
-- Earlier verification findings were rechecked and are fixed.
+- Added the direct `/?demo=1` sandbox entry. It opens the four-tile sample, shows the persistent banner, resets inside `demo:` session storage, and clears demo storage on **Start for real**.
+- Rewrote the first-screen job wording and catalog description in plain language.
+- Completed the real static 404 with the shared navigation, skip link, footer, icon, canonical, Open Graph, and Twitter metadata.
+- Updated SPA title, canonical, Open Graph, and Twitter values on route changes.
+- Declared and tested the remaining README claims for mouse input, known solutions, and the visible seed/route code. Replaced the implementation-jargon explanation.
 
-## Remaining work
+## Verification
 
-1. Add the common header/footer to the real static 404 page.
-2. Add canonical, OG/Twitter, and favicon metadata to that page.
-3. Add tagged claim tests for remaining README promises or remove the promises.
-4. Replace the README’s “seeded hash” jargon with player language.
+- Clean-clone verification: cloned `be2e78c846e6a8a0a732b0d10add3c65d48e4dc1` into `/tmp/route-clean-qIXRTs`, ran `npm ci`, then each of the 14 commands in `.factory/claims.json`. Every command passed.
+- Local quality gates: `npm test` passed **23** tests; `npm run lint`, `npm run build`, and `npm audit --audit-level=high` passed. The build produced `dist/`; initial JavaScript is 8.26 KB gzip and CSS is 3.99 KB gzip.
+- Accessibility: Playwright axe checks found no serious or critical issues on app routes and `404.html`. The live `/opt/fleet/lib/verify-url.sh` check for `https://route-of-the-day.sociobot.in/?demo=1` passed: title, `lang=en`, one h1, main landmark, image alt text, labeled buttons, and no console errors.
+- Live cold checks after production deployment: `/?demo=1` returned 200 with title **Demo — Route of the Day**, the demo banner, four selected tiles, and no script errors. `/definitely-missing` returned HTTP 404 with title **Page not found — Route of the Day**, one header, one footer, canonical `/404`, and the favicon.
+- Screenshots: `./verification-evidence/polish-1-live-demo.png` and `./verification-evidence/polish-1-live-404.png`.
 
-## Verify
+## Deploy
 
-```sh
-npm ci
-npm test
-npm run lint
-npm run build
-```
+Built `dist/` and deployed it to the production Static Web App `sf-route-of-the-day`. The custom live URL is `https://route-of-the-day.sociobot.in`.
 
-Also check `/demo` in a fresh browser context and an unknown live URL such as `https://route-of-the-day.sociobot.in/definitely-missing`.
+## Known gaps
+
+None.
