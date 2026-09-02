@@ -275,7 +275,7 @@ function termsPage(): string {
 }
 
 function notFoundPage(): string {
-  return `${header(false)}<main id="main" class="not-found"><div><p class="eyebrow">404</p><h1 tabindex="-1">Find your way back to the route</h1><p>This page does not exist. The daily puzzle is ready from the home page.</p><a class="primary-button" href="/" data-route>Play today’s route</a></div><div class="lost-route" aria-hidden="true">● ─┐<br>&nbsp;&nbsp;&nbsp;└─ ?</div></main>${footer()}`;
+  return `${header(false)}<main id="main" class="not-found"><div><p class="eyebrow">404</p><h1 tabindex="-1">Page not found</h1><p>This page does not exist. The daily puzzle is ready from the home page.</p><a class="primary-button" href="/" data-route>Play today’s route</a></div><div class="lost-route" aria-hidden="true">● ─┐<br>&nbsp;&nbsp;&nbsp;└─ ?</div></main>${footer()}`;
 }
 
 function persistPath(game: HTMLElement, puzzle: Puzzle, path: Position[]): void {

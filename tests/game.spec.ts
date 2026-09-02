@@ -321,7 +321,7 @@ test('static deployment configuration serves missing routes with HTTP 404', () =
     ]);
   expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
   const page = readFileSync(new URL('../public/404.html', import.meta.url), 'utf8');
-  expect(page).toContain('<h1>Find your way back to the route</h1>');
+  expect(page).toContain('<h1>Page not found</h1>');
   expect(page).toContain('<header class="site-header">');
   expect(page).toContain('<footer>');
   expect(page).toContain('href="/privacy"');
@@ -339,6 +339,7 @@ test('the static 404 document has the shared skeleton, metadata, and no serious 
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.locator('footer')).toHaveCount(1);
   await expect(page.locator('h1')).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: 'Page not found', level: 1 })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://route-of-the-day.sociobot.in/404');
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Page not found — Route of the Day');
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
@@ -367,6 +368,7 @@ test('routes have one h1, correct titles, no serious axe issues, and no console 
     const severe = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
     expect(severe, JSON.stringify(severe, null, 2)).toEqual([]);
   }
+  await expect(page.getByRole('heading', { name: 'Page not found', level: 1 })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
