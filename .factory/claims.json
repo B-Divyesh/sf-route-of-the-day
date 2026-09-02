@@ -1,10 +1,10 @@
 [
   {
     "id": "demo-ready",
-    "claim": "The demo opens a half-finished sample puzzle and resets without changing daily progress.",
+    "claim": "The ?demo=1 sample opens half-finished and resets without changing daily progress.",
     "where": "landing action, demo banner, README",
     "test": "npm test -- --grep @claim:demo-ready",
-    "sandbox": "fresh browser context at /demo; assert four selected sample tiles, reset, demo-prefixed session keys, and empty local storage"
+    "sandbox": "fresh browser context at /?demo=1; assert four selected sample tiles, reset, demo-prefixed session keys, preserved daily storage, and cleared demo storage on exit"
   },
   {
     "id": "daily-seed",
@@ -54,6 +54,27 @@
     "where": "game instructions, README",
     "test": "npm test -- --grep @claim:multi-input",
     "sandbox": "fresh keyboard context and a separate 390px touch context; complete the published route in each"
+  },
+  {
+    "id": "pointer-input",
+    "claim": "Mouse clicks follow the same route rules.",
+    "where": "README",
+    "test": "npm test -- --grep @claim:pointer-input",
+    "sandbox": "fresh browser context; use page.mouse clicks on every step of the published sample solution and assert the end screen"
+  },
+  {
+    "id": "reproducible-solution",
+    "claim": "Each published date has a known route that can be completed.",
+    "where": "README",
+    "test": "npm test -- --grep @claim:reproducible-solution",
+    "sandbox": "generate representative published-date puzzles, apply each known solution, and assert completion"
+  },
+  {
+    "id": "seed-route-code",
+    "claim": "The game shows the date seed before play and a route code after completion.",
+    "where": "README, game board, end screen",
+    "test": "npm test -- --grep @claim:seed-route-code",
+    "sandbox": "fresh browser context; assert the visible UTC seed before play, finish the published solution, and assert its visible route code"
   },
   {
     "id": "frame-rate",

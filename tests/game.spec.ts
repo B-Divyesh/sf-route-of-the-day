@@ -24,9 +24,9 @@ test('generated puzzles are deterministic and solvable', async () => {
   }
 });
 
-test('@claim:demo-ready demo opens half-finished and resets its isolated sample', async ({ page }) => {
+test('@claim:demo-ready ?demo=1 opens half-finished and resets its isolated sample', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('route:test-sentinel', 'daily-progress'));
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.locator('.cell.selected')).toHaveCount(4);
   const path = await solution(page);
@@ -42,6 +42,10 @@ test('@claim:demo-ready demo opens half-finished and resets its isolated sample'
   expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)))).toEqual({
     'route:test-sentinel': 'daily-progress',
   });
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  expect(await page.evaluate(() => Object.keys(sessionStorage))).toEqual([]);
+  expect(await page.evaluate(() => localStorage.getItem('route:test-sentinel'))).toBe('daily-progress');
 });
 
 test('@claim:daily-seed the daily seed is stable for the UTC date', async ({ browser }) => {
@@ -102,14 +106,14 @@ test('@claim:archive-gate only today’s exact completion marker opens archive p
   const publishedPracticeSeed = dailySeed(yesterday);
 
   await page.goto('/?practice=1');
-  await expect(page.getByRole('heading', { name: 'Draw today’s route', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Draw today’s spatial route', level: 1 })).toBeVisible();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator('[data-game]')).toHaveAttribute('data-seed', today);
   await expect(page.locator('.archive-mode')).toHaveCount(0);
 
   await page.evaluate((seed) => localStorage.setItem('route:daily-complete:v1', seed), publishedPracticeSeed);
   await page.goto('/?practice=1');
-  await expect(page.getByRole('heading', { name: 'Draw today’s route', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Draw today’s spatial route', level: 1 })).toBeVisible();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole('link', { name: 'Open practice routes' })).toHaveCount(0);
 
@@ -186,6 +190,41 @@ test('@claim:multi-input the puzzle works with keyboard and touch', async ({ bro
   await touchContext.close();
 });
 
+test('@claim:pointer-input mouse clicks follow the same route rules', async ({ page }) => {
+  await page.goto('/demo');
+  const path = await solution(page);
+  for (const point of path.slice(4)) {
+    const cell = page.locator(`.cell[data-row="${point.row}"][data-col="${point.col}"]`);
+    await cell.scrollIntoViewIfNeeded();
+    const box = await cell.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  }
+  await expect(page.getByRole('heading', { name: 'Route complete', level: 3 })).toBeVisible();
+});
+
+test('@claim:reproducible-solution every published date has a known route that completes', () => {
+  const start = new Date('2026-01-01T00:00:00Z');
+  for (let offset = 0; offset < 100; offset += 1) {
+    const date = new Date(start);
+    date.setUTCDate(start.getUTCDate() + offset);
+    const puzzle = createPuzzle(dailySeed(date));
+    let path = [puzzle.start];
+    for (const step of puzzle.solution.slice(1)) path = applyMove(puzzle, path, step).path;
+    expect(isComplete(puzzle, path)).toBe(true);
+  }
+});
+
+test('@claim:seed-route-code the game shows the date seed before play and route code after completion', async ({ page }) => {
+  await page.goto('/');
+  const seed = dailySeed();
+  await expect(page.locator('.seed-stamp')).toContainText(seed);
+  const path = await solution(page);
+  await solveByClick(page);
+  const expectedCode = path.map(({ row, col }) => `${String.fromCharCode(65 + col)}${row + 1}`).join('–');
+  await expect(page.locator('.solution-code')).toContainText(expectedCode);
+});
+
 test('@claim:frame-rate route rendering samples at least 50 frames per second', async ({ page }) => {
   await page.goto('/demo');
   const frames = await page.evaluate(() => new Promise<number>((resolve) => {
@@ -205,7 +244,7 @@ test('invalid practice seeds recover to the daily route without a page error', a
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/?practice=1e309');
-  await expect(page.getByRole('heading', { name: 'Draw today’s route', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Draw today’s spatial route', level: 1 })).toBeVisible();
   await expect(page.locator('[data-game]')).toBeVisible();
   expect(await page.locator('[data-game]').getAttribute('data-seed')).toBe(dailySeed());
   expect(errors).toEqual([]);
@@ -283,6 +322,29 @@ test('static deployment configuration serves missing routes with HTTP 404', () =
   expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
   const page = readFileSync(new URL('../public/404.html', import.meta.url), 'utf8');
   expect(page).toContain('<h1>Find your way back to the route</h1>');
+  expect(page).toContain('<header class="site-header">');
+  expect(page).toContain('<footer>');
+  expect(page).toContain('href="/privacy"');
+  expect(page).toContain('href="/terms"');
+  expect(page).toContain('rel="canonical" href="https://route-of-the-day.sociobot.in/404"');
+  expect(page).toContain('property="og:title"');
+  expect(page).toContain('name="twitter:card"');
+  expect(page).toContain('rel="icon" href="/favicon.svg"');
+});
+
+test('the static 404 document has the shared skeleton, metadata, and no serious axe issues', async ({ page }) => {
+  await page.goto('/404.html');
+  await expect(page).toHaveTitle('Page not found — Route of the Day');
+  await expect(page.locator('header')).toHaveCount(1);
+  await expect(page.locator('main')).toHaveCount(1);
+  await expect(page.locator('footer')).toHaveCount(1);
+  await expect(page.locator('h1')).toHaveCount(1);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://route-of-the-day.sociobot.in/404');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Page not found — Route of the Day');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+  const results = await new AxeBuilder({ page }).analyze();
+  const severe = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
+  expect(severe, JSON.stringify(severe, null, 2)).toEqual([]);
 });
 
 test('routes have one h1, correct titles, no serious axe issues, and no console errors', async ({ page }) => {
@@ -290,6 +352,7 @@ test('routes have one h1, correct titles, no serious axe issues, and no console 
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   const routes = [
     ['/', 'Route of the Day — Draw a daily route'],
+    ['/?demo=1', 'Demo — Route of the Day'],
     ['/demo', 'Demo — Route of the Day'],
     ['/privacy', 'Privacy — Route of the Day'],
     ['/terms', 'Terms — Route of the Day'],

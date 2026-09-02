@@ -10,14 +10,14 @@ The live site is [route-of-the-day.sociobot.in](https://route-of-the-day.sociobo
 
 Select adjacent squares to connect the circle to the diamond. Use the exact tile count and meet the daily marker or turn rule. Running out of tiles before Finish blocks the route until you undo or restart.
 
-The puzzle works with keyboard and touch input. Pointer input uses the same route rules. A loaded puzzle remains playable if the browser goes offline.
+The puzzle works with keyboard and touch input. Mouse clicks follow the same route rules. A loaded puzzle remains playable if the browser goes offline.
 
 Completing today’s UTC daily route opens non-scored archive practice. An earlier completion does not open it. Each archive route uses the published seed for an earlier UTC date.
 Practice progress is kept separate from the daily route.
 
 ## Try the isolated demo
 
-Open [`/demo`](https://route-of-the-day.sociobot.in/demo) or add `/demo` to the local URL. It starts with four route tiles already placed.
+Open [`?demo=1`](https://route-of-the-day.sociobot.in/?demo=1) or [`/demo`](https://route-of-the-day.sociobot.in/demo). It starts with four route tiles already placed.
 
 Demo progress uses `sessionStorage` keys beginning with `demo:`. It never reads or changes daily progress. Select **Reset demo** for a clean sample.
 
@@ -45,13 +45,13 @@ npm test
 npm run build
 ```
 
-`npm test` runs deterministic core checks and Playwright claim tests. The test suite solves complete routes with keyboard, touch, and pointer input.
+`npm test` runs deterministic core checks and the Playwright claim tests listed in `.factory/claims.json`.
 
 The production build lands in `dist/`, with `index.html` at its root. Route rendering sustains at least 50 frames per second in the test browser.
 
 ## Deterministic puzzle model
 
-The UTC date is the daily seed. A seeded hash selects a route skeleton, rotation, reflection, obstacles, and one rule. The generator starts from a known solution, so the published route remains reproducible. The browser shows the seed before play and the route code after completion.
+The UTC date chooses one route, its direction, blocked squares, and one rule. Each date has a known solution, so every published route can be completed. The game shows the date seed before play and a route code after completion.
 
 ## Deploy
 

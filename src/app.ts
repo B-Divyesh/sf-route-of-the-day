@@ -58,7 +58,7 @@ function header(demo: boolean): string {
       <a class="wordmark" href="/" data-route>${logo()}<span>Route of the Day</span></a>
       <nav aria-label="Main navigation">
         <a href="/" data-route>Daily</a>
-        <a href="/demo" data-route ${demo ? 'aria-current="page"' : ''}>Demo</a>
+        <a href="/?demo=1" data-route ${demo ? 'aria-current="page"' : ''}>Demo</a>
         <a href="/#how" data-route>How it works</a>
         <a href="/privacy" data-route>Privacy</a>
       </nav>
@@ -215,9 +215,9 @@ function landingPage(): string {
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">${practice ? 'Practice with an archived daily seed' : 'A new spatial puzzle every day'}</p>
-          <h1 tabindex="-1">${practice ? 'Draw an archive route' : 'Draw today’s route'}</h1>
-          <p class="hero-summary">For daily-puzzle players who want a short spatial challenge without words, scores, or an account.</p>
-          <div class="hero-action"><a class="primary-button" href="/demo" data-route>Try it with sample data</a><span>Opens a half-finished sample puzzle.</span></div>
+          <h1 tabindex="-1">${practice ? 'Draw an archive route' : 'Draw today’s spatial route'}</h1>
+          <p class="hero-summary">For daily-puzzle players who want a short route challenge without words or an account.</p>
+          <div class="hero-action"><a class="primary-button" href="/?demo=1" data-route>Try it with sample data</a><span>Opens a half-finished sample puzzle.</span></div>
           <ul class="plain-facts" aria-label="Game facts"><li>Free to play</li><li>No account</li><li>Progress stays in this browser</li></ul>
         </div>
         <div class="hero-game">${createGame(puzzle, false, practice)}</div>
@@ -420,18 +420,26 @@ function bindGlobal(): void {
 }
 
 function updateMeta(path: string): void {
-  const meta = routeMeta[path] ?? routeMeta['/404'];
+  const route = routeMeta[path] ? path : '/404';
+  const meta = routeMeta[route];
   document.title = meta.title;
   document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', meta.description);
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  canonical?.setAttribute('href', `https://route-of-the-day.sociobot.in${path === '/' ? '/' : path}`);
+  const url = `https://route-of-the-day.sociobot.in${route === '/' ? '/' : route}`;
+  canonical?.setAttribute('href', url);
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', meta.title);
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', meta.description);
+  document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.setAttribute('content', url);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', meta.title);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute('content', meta.description);
 }
 
 function render(focusHeading = false, restoreScroll = false): void {
   const path = location.pathname.replace(/\/$/, '') || '/';
-  updateMeta(path);
-  app.innerHTML = path === '/' ? landingPage()
-    : path === '/demo' ? demoPage()
+  const demo = path === '/demo' || (path === '/' && new URLSearchParams(location.search).get('demo') === '1');
+  updateMeta(demo ? '/demo' : path);
+  app.innerHTML = demo ? demoPage()
+    : path === '/' ? landingPage()
       : path === '/privacy' ? privacyPage()
         : path === '/terms' ? termsPage()
           : notFoundPage();
