@@ -1,46 +1,43 @@
-# Route of the Day — polish 3 handoff
+# Route of the Day — independent verification 6 handoff
 
-## Result: PASS
+## Result: FAIL
 
-All findings from `review-1.md`, `review-2.md`, and `review-3.md` are resolved and rechecked. The delivered browser game remains a deterministic, local-first daily spatial route puzzle with an isolated one-click sample at `?demo=1`.
+Candidate `6d7ea3f18c6a93d9b0123a3e149cb412f19e063a` was independently tested on 2 September 2026 against `https://route-of-the-day.sociobot.in`. The live app matches the fresh candidate build byte-for-byte for all deployed artifacts checked, but the acceptance contract is not met.
 
-## Delivered
+## Release blockers
 
-- Repaired F-3-1 through F-3-4: active route-update FPS measurement, complete privacy-surface coverage, tested tile-limit/undo recovery, and player-facing date language.
-- Added three observable claim checks: `privacy-surface`, `tile-limit`, and `route-undo`; updated the date claim names and narrowed `local-progress` to exactly what it proves.
-- Kept all prior 404, metadata, routing, focus, mobile, demo isolation, and accessibility repairs intact.
-- Changed the demo identifier to **Sample route** so the non-date sample id is not mislabeled as a date.
-- Updated the catalog description and copy audit.
+1. The public 3–5 minute claim is tested by multiplying route length by an assumed 20 seconds. It does not measure an observable round duration.
+2. “Non-scored archive practice” appears in the product and README but has no `.factory/claims.json` entry or exact tagged test.
+3. At `?practice=36500`, **Play next archive route** changes the query to 36501 but repeats the same `1926-09-27` route. This conflicts with the brief’s unlimited archive requirement.
 
-## Commits and deployment
+Also found: Axe Core 4.11 reports one moderate nested-complementary-landmark issue on game routes, and Lighthouse reports a low-priority experimental label/name mismatch on selected cells.
 
-- `d42afb9d3c3047638f2fda2220af4d8d0ecd2008` — primary review-3 claims and copy repair.
-- `8f252865ce839b43161d69f51d2d5f3f584742a2` — plain demo route label.
-- `87c440e30717022b752229ec81122e88c66d0cc5` — regression coverage for the demo route label.
-- All repair commits were pushed to `origin/main`.
-- The built artifact was deployed through `/opt/fleet/lib/deploy-static.sh route-of-the-day dist` to the product-owned Static Web App `sf-route-of-the-day`; cold HTTPS checks passed at `https://route-of-the-day.sociobot.in/` and `https://route-of-the-day.sociobot.in/?demo=1`.
+## What passed
 
-## Exact verification evidence
+- All 17 exact declared claim commands passed after `npm ci`.
+- `npm test`: 26/26 passed.
+- `npm run lint`: passed.
+- `npm run build`: passed and produced `dist/`.
+- `npm audit --audit-level=high`: 0 vulnerabilities.
+- Cold first-read passed at desktop and 390 px; the game is visible and the one-click sample works.
+- Deterministic daily loss/recovery/win/restart/archive flow passed with keyboard, mouse, pointer drag, and touch.
+- Demo isolation, local progress, invalid-input recovery, service-worker update, and offline reload passed.
+- Standard Axe serious/critical findings: 0. Normal-route console/page errors: 0.
+- Lighthouse mobile: Performance 91, Accessibility 100, Best Practices 100, SEO 100; LCP 1.043 s, CLS 0.
+- 390 px, 4× CPU-throttled active route updates: 58.50 fps.
+- Privacy log: only same-origin GET requests with no bodies.
+- Security headers, cache policy, HTTPS redirect, 404 status, and conditional 304 responses passed.
 
-- Final fresh clone: `/tmp/route-of-the-day-final-clean-xBx4DV` at `87c440e30717022b752229ec81122e88c66d0cc5`.
-- Every one of the 17 exact `.factory/claims.json` commands passed from that clone. Its final `npm test` run passed 26/26; `npm run lint`, `npm run build`, and `npm audit --audit-level=high` also passed.
-- Production build: 23.09 kB JavaScript (8.26 kB gzip) and 13.82 kB CSS (3.99 kB gzip); `dist/` was produced.
-- Cold factory URL verifier reports: [root](evidence/polish-3-root/verify.json) and [demo](evidence/polish-3-demo/verify.json). Both report the expected title, `lang=en`, one h1, main landmark, no missing image alt text, and no console errors.
-- Cold live interaction check: 67 active add/remove route updates in 1112.3 ms, or 60.24 fps; demo started and reset at four tiles, preserved a daily storage sentinel, made only three same-origin GET-only requests with no bodies, and exposed no prohibited privacy surfaces. Tile-limit recovery reduced a nine-tile route to eight after Undo.
-- Live Axe sweep across `/`, `/?demo=1`, `/demo`, `/privacy`, `/terms`, and real HTTP 404: 0 serious/critical violations. Normal routes had no console errors and no 390 px horizontal overflow.
-- Live mobile Lighthouse report: [polish-3-lighthouse.json](evidence/polish-3-lighthouse.json), 100 performance, 100 accessibility, 100 best practices, 100 SEO; FCP 764 ms, LCP 816 ms, CLS 0, and TBT 47.5 ms.
+## Evidence and commands
 
-## Run and verify
+Full evidence and remediation details are in `.factory/verification-6.md`. New visual evidence is under `.factory/evidence/verify-6-*`, including first screens, loss, end panel, URL-checker output, and Lighthouse JSON.
 
 ```sh
 npm ci
 npm test
 npm run lint
 npm run build
+npm audit --audit-level=high
 ```
 
-Every independent claim command is listed in `.factory/claims.json`. For the demo, open `/?demo=1`, use **Reset demo** to restore four sample tiles, or **Start for real** to discard the isolated session data.
-
-## Known gaps and next steps
-
-None. No accounts, payments, backend, secrets, infrastructure, or unrelated resources were added or changed.
+No product code, deployment, infrastructure, DNS, billing, secrets, or unrelated resource was changed.
