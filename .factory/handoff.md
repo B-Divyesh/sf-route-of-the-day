@@ -1,64 +1,20 @@
-# Route of the Day — verification 4 handoff
+# Route of the Day — review 2 handoff
 
-## Result: PASS
+## Result: FAIL
 
-- Candidate: `80784a6678016d4c09daf3c719ee638a1e73d930`
-- Live URL: `https://route-of-the-day.sociobot.in`
-- Verified: 2 September 2026 UTC
-- Work order: `route-of-the-day-verify-4`
+Reviewer work order `route-of-the-day-review-2` completed on 2 September 2026 UTC. No product code, deployment configuration, infrastructure, or external resource was changed.
 
-Independent clean-checkout and live QA passed. The live game matches the
-candidate byte for byte, the first screen passes the plain-language and
-one-click demo gates, and deterministic daily, demo, and archive runs reach the
-real end screen. No product code or infrastructure was changed.
+`review-2.md` records one remaining minor finding: both real 404 implementations use the metaphor headline “Find your way back to the route.” Replace it with “Page not found” in `public/404.html` and `src/app.ts`.
 
-## Verification summary
+## Verification performed
 
-- All 14 exact commands from `.factory/claims.json` passed.
-- Fresh detached checkout: `npm ci`, 23/23 tests, `npm run lint`, `npm run
-  build`, and `npm audit --audit-level=high` passed.
-- Build output: JS 23,059 bytes raw / 8,280 gzip; CSS 13,817 raw / 4,001 gzip;
-  hero WebP 67,436 bytes.
-- Live seed `2026-09-02` completed with route
-  `B1–B2–C2–C3–C4–D4–E4–E5–E6`; restart reset to Start; archive seed
-  `2026-09-01` also completed without changing daily progress.
-- A nine-tile non-winning route hit the tile limit, rejected another move with
-  recovery instructions, and did not show the win panel.
-- Keyboard, mouse, pointer drag, and 390px touch runs passed. Progress reload,
-  invalid input recovery, archive gating, and demo storage isolation passed.
-- Live Axe found zero serious/critical findings across all routes. The required
-  URL verifier passed. Focus, skip navigation, 44px targets, 200% text, reduced
-  motion, and mobile overflow checks passed.
-- Full gameplay emitted only same-origin requests, with no normal-route console
-  or page errors. Security and cache headers are present; conditional HTML and
-  JS requests returned 304.
-- Service-worker update and offline `/demo` reload passed.
-- Lighthouse mobile: Performance 92, Accessibility 100, Best Practices 100,
-  SEO 100; FCP 0.9s, LCP 1.0s, CLS 0, total transfer 80 KiB.
-- A separate 390px, 4× CPU-throttled live frame sample measured 60.47 fps.
-- SHA-256 hashes match for live and candidate HTML, JS, CSS, service worker,
-  404 document, and favicon.
+- Opened the live site in fresh 390px and 1440px browser contexts before scrolling. The job, audience, and first action were clear.
+- Checked live demo isolation: four-tile sample, banner, reset, daily-storage sentinel preservation, and cleanup on leaving demo.
+- Logged live requests: demo made only same-origin GET requests and no console/page errors. The loaded live demo still accepted a move offline.
+- Checked live titles, h1/main/header/footer, metadata, canonical URLs, favicon, routes, internal links, static assets, security headers, and a genuine HTTP 404.
+- Read all prior review, polish, verification, and handoff records; F-1-1 through F-1-4 are actually fixed.
+- In a fresh detached clone at `efdbf6112deacb3d60b22354fe26ebadcc5a6d33`: `npm ci`, 23-test `npm test`, all 14 declared claim tests, `npm run lint`, `npm run build`, and `npm audit --audit-level=high` passed. `dist/` was produced.
 
-Full evidence is in [verification-4.md](verification-4.md).
+## Next step
 
-## Defects and known gaps
-
-- Critical: none.
-- High: none.
-- Medium: none.
-- Low: none.
-
-The product is static and has no backend API, sign-in, payment, or installable
-PWA manifest. Rate-limit, server concurrency/persistence, health identity, and
-Entra checks are not applicable. No deployment action is required.
-
-## Re-run
-
-```sh
-npm ci
-node -e "for (const c of require('./.factory/claims.json')) console.log(c.test)"
-npm test
-npm run lint
-npm run build
-npm audit --audit-level=high
-```
+Apply the one 404 headline correction, then rerun the 404 and full claim/accessibility checks. The working tree contains only this review and handoff documentation, ready to commit.
