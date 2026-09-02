@@ -66,4 +66,4 @@ No audited line exceeds 22 words or includes a banned marketing term. Player-fac
 
 ## Catalog description
 
-“Draw a short route through a new spatial puzzle every day.” — 11 words, 56 characters, starts with a verb.
+“Draw a daily route across a new spatial puzzle.” — 9 words, 46 characters, starts with a verb.
