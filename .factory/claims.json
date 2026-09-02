@@ -7,11 +7,11 @@
     "sandbox": "fresh browser context at /?demo=1; assert four selected sample tiles, reset, demo-prefixed session keys, preserved daily storage, and cleared demo storage on exit"
   },
   {
-    "id": "daily-seed",
-    "claim": "Everyone receives the same puzzle from the published UTC daily seed.",
-    "where": "landing, puzzle seed, README",
-    "test": "npm test -- --grep @claim:daily-seed",
-    "sandbox": "two fresh browser contexts; assert the UTC date seed and identical generated solutions"
+    "id": "daily-date",
+    "claim": "Everyone receives the same route for each UTC date.",
+    "where": "landing, puzzle date, README",
+    "test": "npm test -- --grep @claim:daily-date",
+    "sandbox": "two fresh browser contexts; assert the visible UTC date and identical generated solutions"
   },
   {
     "id": "round-duration",
@@ -22,10 +22,10 @@
   },
   {
     "id": "local-progress",
-    "claim": "Progress stays in this browser and the game sends no cross-origin requests.",
+    "claim": "Progress stays in this browser.",
     "where": "landing facts, privacy page, README",
     "test": "npm test -- --grep @claim:local-progress",
-    "sandbox": "fresh browser context; place a tile, reload, assert restored route, and inspect every outgoing request origin"
+    "sandbox": "fresh browser context; place a tile, reload, and assert the restored route"
   },
   {
     "id": "complete-run",
@@ -39,14 +39,14 @@
     "claim": "Archive practice opens only after today’s UTC daily route is complete.",
     "where": "landing archive lock, README",
     "test": "npm test -- --grep @claim:archive-gate",
-    "sandbox": "fresh browser context; deny direct practice with no marker and yesterday’s marker, then allow it only when the marker exactly matches today’s UTC seed"
+    "sandbox": "fresh browser context; deny direct practice with no marker and yesterday’s marker, then allow it only when the marker exactly matches today’s UTC date"
   },
   {
     "id": "practice-progress",
-    "claim": "Practice puzzles use published seeds and do not affect the daily route.",
+    "claim": "Practice uses routes from earlier dates and does not change today’s route.",
     "where": "landing archive section, README",
     "test": "npm test -- --grep @claim:practice-progress",
-    "sandbox": "save a partial daily route, set today’s completion marker, assert practice=1 publishes yesterday’s UTC seed, complete it, and assert daily storage is unchanged"
+    "sandbox": "save a partial daily route, set today’s completion marker, assert practice=1 uses yesterday’s UTC date, complete it, and assert daily storage is unchanged"
   },
   {
     "id": "multi-input",
@@ -70,18 +70,18 @@
     "sandbox": "generate representative published-date puzzles, apply each known solution, and assert completion"
   },
   {
-    "id": "seed-route-code",
-    "claim": "The game shows the date seed before play and a route code after completion.",
+    "id": "date-route-code",
+    "claim": "The game shows the date before play and a route code after completion.",
     "where": "README, game board, end screen",
-    "test": "npm test -- --grep @claim:seed-route-code",
-    "sandbox": "fresh browser context; assert the visible UTC seed before play, finish the published solution, and assert its visible route code"
+    "test": "npm test -- --grep @claim:date-route-code",
+    "sandbox": "fresh browser context; assert the visible UTC date before play, finish the published solution, and assert its visible route code"
   },
   {
     "id": "frame-rate",
     "claim": "Route rendering sustains at least 50 frames per second in the test browser.",
     "where": "README, handoff",
     "test": "npm test -- --grep @claim:frame-rate",
-    "sandbox": "fresh demo page; count requestAnimationFrame callbacks over one second and require at least 50"
+    "sandbox": "fresh demo page; repeatedly add and remove a route tile during a timed requestAnimationFrame sample, then require at least 50 frames per second"
   },
   {
     "id": "free-access",
@@ -89,6 +89,27 @@
     "where": "landing facts, README",
     "test": "npm test -- --grep @claim:free-access",
     "sandbox": "fresh browser context; assert the playable grid is visible with no account fields, buy action, subscription, or payment step"
+  },
+  {
+    "id": "privacy-surface",
+    "claim": "The game has no accounts, rankings, streak penalties, analytics, ads, remote fonts, or third-party scripts; game progress sends no request body.",
+    "where": "landing privacy section, privacy page, README",
+    "test": "npm test -- --grep @claim:privacy-surface",
+    "sandbox": "fresh demo context; play and reset the sample while recording requests, then assert same-origin GET-only traffic with no bodies, same-origin script/style/font resources, and no account, ranking, streak, analytics, or ad controls"
+  },
+  {
+    "id": "tile-limit",
+    "claim": "Reaching the tile limit blocks the next tile until a tile is removed or the route is restarted.",
+    "where": "game feedback, README",
+    "test": "npm test -- --grep @claim:tile-limit",
+    "sandbox": "fresh daily puzzle; build a legal non-winning route to its tile limit, assert the announced block, remove one tile, and assert a route tile can be added again"
+  },
+  {
+    "id": "route-undo",
+    "claim": "Selecting the previous tile or pressing Backspace removes the latest tile and lets play continue.",
+    "where": "game instructions, README",
+    "test": "npm test -- --grep @claim:route-undo",
+    "sandbox": "fresh demo; add one tile, select the previous tile, add it again, press Backspace, and after each removal assert exactly one tile is removed and the next tile can be added"
   },
   {
     "id": "offline-play",

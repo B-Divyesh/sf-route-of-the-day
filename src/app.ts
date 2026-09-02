@@ -146,13 +146,13 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
   const focusPosition = path[path.length - 1];
   window.__ROUTE_PUZZLE__ = puzzle;
 
-  return `<section class="game-shell" aria-labelledby="puzzle-heading" data-game data-seed="${escapeHtml(puzzle.seed)}" data-solution="${escapeHtml(JSON.stringify(puzzle.solution))}" data-storage-key="${escapeHtml(key)}" data-demo="${demo}" data-practice="${practice}">
+  return `<section class="game-shell" aria-labelledby="puzzle-heading" data-game data-date="${escapeHtml(puzzle.seed)}" data-solution="${escapeHtml(JSON.stringify(puzzle.solution))}" data-storage-key="${escapeHtml(key)}" data-demo="${demo}" data-practice="${practice}">
     <div class="game-heading">
       <div>
         <p class="section-kicker">${escapeHtml(puzzle.label)}</p>
         <h2 id="puzzle-heading">Connect Start to Finish</h2>
       </div>
-      <div class="seed-stamp"><span>Seed</span><strong>${escapeHtml(puzzle.seed)}</strong></div>
+      <div class="date-stamp" aria-label="Date ${escapeHtml(puzzle.seed)}"><span>Date</span><strong>${escapeHtml(puzzle.seed)}</strong></div>
     </div>
     <p class="rule"><span aria-hidden="true">↳</span> ${escapeHtml(describeRule(puzzle))}</p>
     <div class="game-layout">
@@ -214,7 +214,7 @@ function landingPage(): string {
     <main id="main">
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">${practice ? 'Practice with an archived daily seed' : 'A new spatial puzzle every day'}</p>
+          <p class="eyebrow">${practice ? 'Practice with a route from an earlier date' : 'A new spatial puzzle every day'}</p>
           <h1 tabindex="-1">${practice ? 'Draw an archive route' : 'Draw today’s spatial route'}</h1>
           <p class="hero-summary">For daily-puzzle players who want a short route challenge without words or an account.</p>
           <div class="hero-action"><a class="primary-button" href="/?demo=1" data-route>Try it with sample data</a><span>Opens a half-finished sample puzzle.</span></div>
@@ -223,9 +223,9 @@ function landingPage(): string {
         <div class="hero-game">${createGame(puzzle, false, practice)}</div>
       </section>
       ${practice ? `<div class="mode-strip archive-mode"><span>Archive practice · not scored</span><a href="/" data-route>Return to today’s route</a></div>` : ''}
-      <figure class="world-strip"><img src="/assets/route-landscape.webp" width="960" height="640" loading="lazy" decoding="async" alt="An abstract orange route connects two landmarks across interlocking map tiles." /><figcaption>Each route is built from one published daily seed.</figcaption></figure>
+      <figure class="world-strip"><img src="/assets/route-landscape.webp" width="960" height="640" loading="lazy" decoding="async" alt="An abstract orange route connects two landmarks across interlocking map tiles." /><figcaption>Everyone gets the same route for each UTC date.</figcaption></figure>
       <section class="archive-section" aria-labelledby="archive-heading">
-        <div><p class="section-kicker">Practice archive</p><h2 id="archive-heading">Play another generated route</h2><p>Practice puzzles use published seeds and do not affect the daily route.</p></div>
+        <div><p class="section-kicker">Practice archive</p><h2 id="archive-heading">Play a route from an earlier date</h2><p>Practice uses routes from earlier dates and does not change today’s route.</p></div>
         ${completedDaily ? '<a class="secondary-button" href="/?practice=1" data-route>Open practice routes</a>' : '<p class="locked-note"><span aria-hidden="true">◇</span> Finish today’s route to open practice mode.</p>'}
       </section>
       <section class="how-section" id="how" aria-labelledby="how-heading">
@@ -233,7 +233,7 @@ function landingPage(): string {
         <ol class="steps">
           <li><span>1</span><div><h3>Start at the circle</h3><p>Select one open square beside the last route tile.</p></div></li>
           <li><span>2</span><div><h3>Meet today’s rule</h3><p>Visit each marker and stay within the tile limit.</p></div></li>
-          <li><span>3</span><div><h3>Reach the diamond</h3><p>Finish the daily route, then play more archive seeds.</p></div></li>
+          <li><span>3</span><div><h3>Reach the diamond</h3><p>Finish today’s route, then play routes from earlier dates.</p></div></li>
         </ol>
       </section>
       <section class="privacy-section" aria-labelledby="not-heading">
@@ -257,7 +257,7 @@ function demoPage(): string {
 function privacyPage(): string {
   return `${header(false)}<main id="main" class="text-page"><p class="eyebrow">Privacy</p><h1 tabindex="-1">See what stays in your browser</h1>
     <p class="lede">Route of the Day has no accounts, analytics, advertising, or third-party scripts.</p>
-    <h2>Data stored on this device</h2><p>The game stores your current route and completed daily seed in browser storage. Demo progress uses a separate session key beginning with <code>demo:</code>.</p>
+    <h2>Data stored on this device</h2><p>The game stores your current route and completed daily date in browser storage. Demo progress uses a separate session key beginning with <code>demo:</code>.</p>
     <h2>Data sent over the network</h2><p>Your browser requests the game files from this site. Game progress does not leave your device.</p>
     <h2>Delete your progress</h2><p>Clear this site’s browser storage to remove all saved progress. You can also restart any puzzle from its route panel.</p>
     <h2>Contact</h2><p>Questions can be sent to <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p>

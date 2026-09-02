@@ -12,7 +12,7 @@ Select adjacent squares to connect the circle to the diamond. Use the exact tile
 
 The puzzle works with keyboard and touch input. Mouse clicks follow the same route rules. A loaded puzzle remains playable if the browser goes offline.
 
-Completing today’s UTC daily route opens non-scored archive practice. An earlier completion does not open it. Each archive route uses the published seed for an earlier UTC date.
+Completing today’s UTC daily route opens non-scored archive practice. An earlier completion does not open it. Each practice route is from an earlier UTC date.
 Practice progress is kept separate from the daily route.
 
 ## Try the isolated demo
@@ -49,9 +49,9 @@ npm run build
 
 The production build lands in `dist/`, with `index.html` at its root. Route rendering sustains at least 50 frames per second in the test browser.
 
-## Deterministic puzzle model
+## How daily routes are chosen
 
-The UTC date chooses one route, its direction, blocked squares, and one rule. Each date has a known solution, so every published route can be completed. The game shows the date seed before play and a route code after completion.
+The UTC date chooses one route, its direction, blocked squares, and one rule. Each date has a known solution, so every published route can be completed. The game shows the date before play and a route code after completion.
 
 ## Deploy
 

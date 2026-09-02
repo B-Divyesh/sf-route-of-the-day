@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
-import { applyMove, createPuzzle, dailySeed, estimatedRoundSeconds, isComplete, practiceIndex, type Position } from '../src/core';
+import { applyMove, createPuzzle, dailySeed, estimatedRoundSeconds, isComplete, practiceIndex, type Position, type Puzzle } from '../src/core';
 
 async function solution(page: Page): Promise<Position[]> {
   return page.locator('[data-game]').evaluate((element) => JSON.parse(element.getAttribute('data-solution') ?? '[]'));
@@ -12,6 +12,43 @@ async function solveByClick(page: Page): Promise<void> {
   for (const point of path.slice(1)) {
     await page.locator(`.cell[data-row="${point.row}"][data-col="${point.col}"]`).click();
   }
+}
+
+function findTileLimitRoute(puzzle: Puzzle): { path: Position[]; overflow: Position } {
+  const candidates = (position: Position, path: Position[]): Position[] => {
+    const options = [
+      { row: position.row - 1, col: position.col },
+      { row: position.row + 1, col: position.col },
+      { row: position.row, col: position.col - 1 },
+      { row: position.row, col: position.col + 1 },
+    ];
+    return options.filter((candidate) => (
+      candidate.row >= 0
+      && candidate.col >= 0
+      && candidate.row < puzzle.size
+      && candidate.col < puzzle.size
+      && !puzzle.blocked.some((blocked) => blocked.row === candidate.row && blocked.col === candidate.col)
+      && !path.some((step) => step.row === candidate.row && step.col === candidate.col)
+    ));
+  };
+
+  const visit = (path: Position[]): { path: Position[]; overflow: Position } | undefined => {
+    if (path.length === puzzle.solution.length) {
+      const overflow = candidates(path[path.length - 1], path)[0];
+      return overflow ? { path, overflow } : undefined;
+    }
+    for (const next of candidates(path[path.length - 1], path)) {
+      const result = applyMove(puzzle, path, next);
+      if (result.path.length !== path.length + 1 || result.complete) continue;
+      const route = visit(result.path);
+      if (route) return route;
+    }
+    return undefined;
+  };
+
+  const route = visit([puzzle.start]);
+  if (!route) throw new Error('Expected an alternate route that reaches the tile limit.');
+  return route;
 }
 
 test('generated puzzles are deterministic and solvable', async () => {
@@ -48,22 +85,23 @@ test('@claim:demo-ready ?demo=1 opens half-finished and resets its isolated samp
   expect(await page.evaluate(() => localStorage.getItem('route:test-sentinel'))).toBe('daily-progress');
 });
 
-test('@claim:daily-seed the daily seed is stable for the UTC date', async ({ browser }) => {
+test('@claim:daily-date the daily route is stable for the UTC date', async ({ browser }) => {
   const first = await browser.newContext();
   const second = await browser.newContext();
   const firstPage = await first.newPage();
   const secondPage = await second.newPage();
   await Promise.all([firstPage.goto('/'), secondPage.goto('/')]);
-  const [firstSeed, secondSeed] = await Promise.all([
-    firstPage.locator('[data-game]').getAttribute('data-seed'),
-    secondPage.locator('[data-game]').getAttribute('data-seed'),
+  const [firstDate, secondDate] = await Promise.all([
+    firstPage.locator('[data-game]').getAttribute('data-date'),
+    secondPage.locator('[data-game]').getAttribute('data-date'),
   ]);
-  expect(firstSeed).toBe(dailySeed());
-  expect(secondSeed).toBe(firstSeed);
+  await expect(firstPage.locator('.date-stamp')).toContainText('Date');
+  expect(firstDate).toBe(dailySeed());
+  expect(secondDate).toBe(firstDate);
   expect(await solution(firstPage)).toEqual(await solution(secondPage));
   const tomorrow = new Date();
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  expect(dailySeed(tomorrow)).not.toBe(firstSeed);
+  expect(dailySeed(tomorrow)).not.toBe(firstDate);
   await Promise.all([first.close(), second.close()]);
 });
 
@@ -75,16 +113,13 @@ test('@claim:round-duration representative routes meet the documented three-to-f
   }
 });
 
-test('@claim:local-progress progress survives reload and sends no cross-origin requests', async ({ page }) => {
-  const origins = new Set<string>();
-  page.on('request', (request) => origins.add(new URL(request.url()).origin));
+test('@claim:local-progress progress survives reload in this browser', async ({ page }) => {
   await page.goto('/');
   const path = await solution(page);
   await page.locator(`.cell[data-row="${path[1].row}"][data-col="${path[1].col}"]`).click();
   await expect(page.locator('.cell.selected')).toHaveCount(2);
   await page.reload();
   await expect(page.locator('.cell.selected')).toHaveCount(2);
-  expect([...origins]).toEqual(['http://127.0.0.1:4173']);
 });
 
 test('@claim:complete-run a daily route reaches the end screen and restart clears it', async ({ page }) => {
@@ -108,7 +143,7 @@ test('@claim:archive-gate only today’s exact completion marker opens archive p
   await page.goto('/?practice=1');
   await expect(page.getByRole('heading', { name: 'Draw today’s spatial route', level: 1 })).toBeVisible();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator('[data-game]')).toHaveAttribute('data-seed', today);
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-date', today);
   await expect(page.locator('.archive-mode')).toHaveCount(0);
 
   await page.evaluate((seed) => localStorage.setItem('route:daily-complete:v1', seed), publishedPracticeSeed);
@@ -120,32 +155,32 @@ test('@claim:archive-gate only today’s exact completion marker opens archive p
   await page.evaluate((seed) => localStorage.setItem('route:daily-complete:v1', seed), today);
   await page.goto('/?practice=1');
   await expect(page.getByRole('heading', { name: 'Draw an archive route', level: 1 })).toBeVisible();
-  await expect(page.locator('[data-game]')).toHaveAttribute('data-seed', publishedPracticeSeed);
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-date', publishedPracticeSeed);
   await expect(page.locator('.archive-mode')).toBeVisible();
 });
 
-test('@claim:practice-progress archive play uses its published seed and leaves saved daily progress unchanged', async ({ page }) => {
+test('@claim:practice-progress archive play uses an earlier date and leaves saved daily progress unchanged', async ({ page }) => {
   await page.goto('/');
   const dailyPath = await solution(page);
-  const todaySeed = await page.locator('[data-game]').getAttribute('data-seed');
-  expect(todaySeed).toBeTruthy();
+  const todayDate = await page.locator('[data-game]').getAttribute('data-date');
+  expect(todayDate).toBeTruthy();
   await page.locator(`.cell[data-row="${dailyPath[1].row}"][data-col="${dailyPath[1].col}"]`).click();
-  await page.evaluate((seed) => localStorage.setItem('route:daily-complete:v1', seed ?? ''), todaySeed);
-  const before = await page.evaluate((seed) => ({
-    path: localStorage.getItem(`route:path:v1:${seed}`),
+  await page.evaluate((date) => localStorage.setItem('route:daily-complete:v1', date ?? ''), todayDate);
+  const before = await page.evaluate((date) => ({
+    path: localStorage.getItem(`route:path:v1:${date}`),
     complete: localStorage.getItem('route:daily-complete:v1'),
-  }), todaySeed);
+  }), todayDate);
 
   await page.goto('/?practice=1');
-  const archiveDate = new Date(`${todaySeed}T00:00:00Z`);
+  const archiveDate = new Date(`${todayDate}T00:00:00Z`);
   archiveDate.setUTCDate(archiveDate.getUTCDate() - 1);
-  await expect(page.locator('[data-game]')).toHaveAttribute('data-seed', dailySeed(archiveDate));
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-date', dailySeed(archiveDate));
   await solveByClick(page);
   await expect(page.getByRole('heading', { name: 'Route complete', level: 3 })).toBeVisible();
-  const after = await page.evaluate((seed) => ({
-    path: localStorage.getItem(`route:path:v1:${seed}`),
+  const after = await page.evaluate((date) => ({
+    path: localStorage.getItem(`route:path:v1:${date}`),
     complete: localStorage.getItem('route:daily-complete:v1'),
-  }), todaySeed);
+  }), todayDate);
   expect(after).toEqual(before);
 });
 
@@ -154,6 +189,92 @@ test('@claim:free-access play starts without an account or payment step', async 
   await expect(page.locator('[data-game]')).toBeVisible();
   await expect(page.locator('input[type="email"], input[type="password"]')).toHaveCount(0);
   await expect(page.getByText(/buy|subscribe|payment/i)).toHaveCount(0);
+});
+
+test('@claim:privacy-surface the sample has no private-data request or account, ranking, streak, analytics, ad, font, or third-party surface', async ({ page }) => {
+  const requests: Array<{ url: string; method: string; body: string | null }> = [];
+  page.on('request', (request) => requests.push({
+    url: request.url(),
+    method: request.method(),
+    body: request.postData(),
+  }));
+
+  await page.goto('/?demo=1');
+  const path = await solution(page);
+  await page.locator(`.cell[data-row="${path[4].row}"][data-col="${path[4].col}"]`).click();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+
+  const controls = await page.locator('a, button, input, select, textarea, [role="button"], [role="link"], [role="textbox"]')
+    .evaluateAll((elements) => elements.map((element) => (
+      (element.getAttribute('aria-label') ?? element.textContent ?? '').replace(/\s+/g, ' ').trim()
+    )));
+  const prohibitedControls = controls.filter((name) => /\b(account|sign[ -]?in|log[ -]?in|rank(?:ing|s)?|leaderboard|streak|analytic(?:s)?|ad(?:s)?|advertis(?:e|ing|ement)?|subscribe|buy|payment)\b/i.test(name));
+  expect(prohibitedControls).toEqual([]);
+
+  const origin = new URL(page.url()).origin;
+  expect(requests.length).toBeGreaterThan(0);
+  expect(requests.every((request) => new URL(request.url).origin === origin)).toBe(true);
+  expect(requests.every((request) => request.method === 'GET' && request.body === null)).toBe(true);
+
+  const externalResourceOrigins = await page.evaluate(() => performance.getEntriesByType('resource')
+    .map((entry) => new URL(entry.name).origin)
+    .filter((resourceOrigin) => resourceOrigin !== location.origin));
+  expect(externalResourceOrigins).toEqual([]);
+  const externalAssetOrigins = await page.evaluate(() => Array.from(document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(
+    'script[src], link[rel="stylesheet"], link[rel="preload"][as="font"]',
+  )).map((element) => new URL(
+    element instanceof HTMLScriptElement ? element.src : element.href,
+    location.href,
+  ).origin).filter((resourceOrigin) => resourceOrigin !== location.origin));
+  expect(externalAssetOrigins).toEqual([]);
+});
+
+test('@claim:tile-limit reaching the tile limit blocks the next tile until removal or restart', async ({ page }) => {
+  const puzzle = createPuzzle(dailySeed());
+  const route = findTileLimitRoute(puzzle);
+  await page.goto('/');
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-date', puzzle.seed);
+  for (const step of route.path.slice(1)) {
+    await page.locator(`.cell[data-row="${step.row}"][data-col="${step.col}"]`).click();
+  }
+  await expect(page.locator('.cell.selected')).toHaveCount(puzzle.solution.length);
+  await page.locator(`.cell[data-row="${route.overflow.row}"][data-col="${route.overflow.col}"]`).click();
+  await expect(page.locator('[data-status]')).toHaveText('The tile limit is reached. Step back and try another route.');
+  await expect(page.locator('.cell.selected')).toHaveCount(puzzle.solution.length);
+
+  await page.getByRole('button', { name: 'Undo tile' }).click();
+  await expect(page.locator('.cell.selected')).toHaveCount(puzzle.solution.length - 1);
+  const last = route.path[route.path.length - 1];
+  await page.locator(`.cell[data-row="${last.row}"][data-col="${last.col}"]`).click();
+  await expect(page.locator('.cell.selected')).toHaveCount(puzzle.solution.length);
+
+  await page.getByRole('button', { name: 'Restart puzzle' }).click();
+  await expect(page.locator('.cell.selected')).toHaveCount(1);
+  const first = route.path[1];
+  await page.locator(`.cell[data-row="${first.row}"][data-col="${first.col}"]`).click();
+  await expect(page.locator('.cell.selected')).toHaveCount(2);
+});
+
+test('@claim:route-undo selecting the previous tile and Backspace each remove one tile and play continues', async ({ page }) => {
+  await page.goto('/?demo=1');
+  const path = await solution(page);
+  const next = page.locator(`.cell[data-row="${path[4].row}"][data-col="${path[4].col}"]`);
+  const previous = page.locator(`.cell[data-row="${path[3].row}"][data-col="${path[3].col}"]`);
+
+  await next.click();
+  await expect(page.locator('.cell.selected')).toHaveCount(5);
+  await previous.click();
+  await expect(page.locator('.cell.selected')).toHaveCount(4);
+  await expect(page.locator('[data-status]')).toHaveText('Removed the last tile.');
+  await next.click();
+  await expect(page.locator('.cell.selected')).toHaveCount(5);
+
+  await next.focus();
+  await page.keyboard.press('Backspace');
+  await expect(page.locator('.cell.selected')).toHaveCount(4);
+  await expect(page.locator('[data-status]')).toHaveText('Removed the last tile.');
+  await next.click();
+  await expect(page.locator('.cell.selected')).toHaveCount(5);
 });
 
 test('@claim:offline-play a loaded puzzle remains playable when the browser goes offline', async ({ browser }) => {
@@ -215,38 +336,59 @@ test('@claim:reproducible-solution every published date has a known route that c
   }
 });
 
-test('@claim:seed-route-code the game shows the date seed before play and route code after completion', async ({ page }) => {
+test('@claim:date-route-code the game shows the date before play and route code after completion', async ({ page }) => {
   await page.goto('/');
-  const seed = dailySeed();
-  await expect(page.locator('.seed-stamp')).toContainText(seed);
+  const date = dailySeed();
+  await expect(page.locator('.date-stamp')).toHaveAttribute('aria-label', `Date ${date}`);
   const path = await solution(page);
   await solveByClick(page);
   const expectedCode = path.map(({ row, col }) => `${String.fromCharCode(65 + col)}${row + 1}`).join('–');
   await expect(page.locator('.solution-code')).toContainText(expectedCode);
 });
 
-test('@claim:frame-rate route rendering samples at least 50 frames per second', async ({ page }) => {
-  await page.goto('/demo');
-  const frames = await page.evaluate(() => new Promise<number>((resolve) => {
-    let count = 0;
+test('@claim:frame-rate route rendering sustains at least 50 frames per second during active route updates', async ({ page }) => {
+  await page.goto('/?demo=1');
+  const measurement = await page.evaluate(async () => {
+    const game = document.querySelector<HTMLElement>('[data-game]');
+    if (!game) throw new Error('The demo game is missing.');
+    const path = JSON.parse(game.getAttribute('data-solution') ?? '[]') as Position[];
+    const add = game.querySelector<HTMLButtonElement>(`.cell[data-row="${path[4].row}"][data-col="${path[4].col}"]`);
+    const remove = game.querySelector<HTMLButtonElement>(`.cell[data-row="${path[3].row}"][data-col="${path[3].col}"]`);
+    if (!add || !remove) throw new Error('The timed route controls are missing.');
+
+    let frames = 0;
+    let updates = 0;
+    let mutations = 0;
+    let addNext = true;
+    const observer = new MutationObserver((entries) => { mutations += entries.length; });
+    observer.observe(game, { subtree: true, childList: true, attributes: true });
     const start = performance.now();
-    const tick = (time: number) => {
-      count += 1;
-      if (time - start >= 1000) resolve(count);
-      else requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }));
-  expect(frames).toBeGreaterThanOrEqual(50);
+    const elapsed = await new Promise<number>((resolve) => {
+      const tick = (time: number) => {
+        frames += 1;
+        (addNext ? add : remove).click();
+        addNext = !addNext;
+        updates += 1;
+        if (time - start >= 1100) resolve(time - start);
+        else requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    observer.disconnect();
+    return { frames, updates, mutations, elapsed, fps: frames * 1000 / elapsed };
+  });
+  expect(measurement.updates).toBeGreaterThanOrEqual(50);
+  expect(measurement.mutations).toBeGreaterThan(measurement.updates);
+  expect(measurement.fps).toBeGreaterThanOrEqual(50);
 });
 
-test('invalid practice seeds recover to the daily route without a page error', async ({ page }) => {
+test('invalid practice dates recover to the daily route without a page error', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/?practice=1e309');
   await expect(page.getByRole('heading', { name: 'Draw today’s spatial route', level: 1 })).toBeVisible();
   await expect(page.locator('[data-game]')).toBeVisible();
-  expect(await page.locator('[data-game]').getAttribute('data-seed')).toBe(dailySeed());
+  expect(await page.locator('[data-game]').getAttribute('data-date')).toBe(dailySeed());
   expect(errors).toEqual([]);
   expect(practiceIndex('abc')).toBe(0);
   expect(practiceIndex('-1')).toBe(0);
