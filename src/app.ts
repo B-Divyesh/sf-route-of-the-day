@@ -144,6 +144,7 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
   const tilesLeft = puzzle.solution.length - path.length;
   const nextPractice = practice ? practiceIndex(new URLSearchParams(location.search).get('practice')) + 1 : 1;
   const focusPosition = path[path.length - 1];
+  const routeLabel = demo ? 'Sample route' : 'Date';
   window.__ROUTE_PUZZLE__ = puzzle;
 
   return `<section class="game-shell" aria-labelledby="puzzle-heading" data-game data-date="${escapeHtml(puzzle.seed)}" data-solution="${escapeHtml(JSON.stringify(puzzle.solution))}" data-storage-key="${escapeHtml(key)}" data-demo="${demo}" data-practice="${practice}">
@@ -152,7 +153,7 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
         <p class="section-kicker">${escapeHtml(puzzle.label)}</p>
         <h2 id="puzzle-heading">Connect Start to Finish</h2>
       </div>
-      <div class="date-stamp" aria-label="Date ${escapeHtml(puzzle.seed)}"><span>Date</span><strong>${escapeHtml(puzzle.seed)}</strong></div>
+      <div class="date-stamp" aria-label="${routeLabel} ${escapeHtml(puzzle.seed)}"><span>${routeLabel}</span><strong>${escapeHtml(puzzle.seed)}</strong></div>
     </div>
     <p class="rule"><span aria-hidden="true">↳</span> ${escapeHtml(describeRule(puzzle))}</p>
     <div class="game-layout">
