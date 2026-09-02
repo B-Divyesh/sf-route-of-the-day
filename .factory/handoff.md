@@ -1,29 +1,64 @@
-# Route of the Day — polish 1 handoff
+# Route of the Day — verification 4 handoff
 
 ## Result: PASS
 
-Repair commit: `be2e78c846e6a8a0a732b0d10add3c65d48e4dc1`.
+- Candidate: `80784a6678016d4c09daf3c719ee638a1e73d930`
+- Live URL: `https://route-of-the-day.sociobot.in`
+- Verified: 2 September 2026 UTC
+- Work order: `route-of-the-day-verify-4`
 
-## Shipped
+Independent clean-checkout and live QA passed. The live game matches the
+candidate byte for byte, the first screen passes the plain-language and
+one-click demo gates, and deterministic daily, demo, and archive runs reach the
+real end screen. No product code or infrastructure was changed.
 
-- Added the direct `/?demo=1` sandbox entry. It opens the four-tile sample, shows the persistent banner, resets inside `demo:` session storage, and clears demo storage on **Start for real**.
-- Rewrote the first-screen job wording and catalog description in plain language.
-- Completed the real static 404 with the shared navigation, skip link, footer, icon, canonical, Open Graph, and Twitter metadata.
-- Updated SPA title, canonical, Open Graph, and Twitter values on route changes.
-- Declared and tested the remaining README claims for mouse input, known solutions, and the visible seed/route code. Replaced the implementation-jargon explanation.
+## Verification summary
 
-## Verification
+- All 14 exact commands from `.factory/claims.json` passed.
+- Fresh detached checkout: `npm ci`, 23/23 tests, `npm run lint`, `npm run
+  build`, and `npm audit --audit-level=high` passed.
+- Build output: JS 23,059 bytes raw / 8,280 gzip; CSS 13,817 raw / 4,001 gzip;
+  hero WebP 67,436 bytes.
+- Live seed `2026-09-02` completed with route
+  `B1–B2–C2–C3–C4–D4–E4–E5–E6`; restart reset to Start; archive seed
+  `2026-09-01` also completed without changing daily progress.
+- A nine-tile non-winning route hit the tile limit, rejected another move with
+  recovery instructions, and did not show the win panel.
+- Keyboard, mouse, pointer drag, and 390px touch runs passed. Progress reload,
+  invalid input recovery, archive gating, and demo storage isolation passed.
+- Live Axe found zero serious/critical findings across all routes. The required
+  URL verifier passed. Focus, skip navigation, 44px targets, 200% text, reduced
+  motion, and mobile overflow checks passed.
+- Full gameplay emitted only same-origin requests, with no normal-route console
+  or page errors. Security and cache headers are present; conditional HTML and
+  JS requests returned 304.
+- Service-worker update and offline `/demo` reload passed.
+- Lighthouse mobile: Performance 92, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 0.9s, LCP 1.0s, CLS 0, total transfer 80 KiB.
+- A separate 390px, 4× CPU-throttled live frame sample measured 60.47 fps.
+- SHA-256 hashes match for live and candidate HTML, JS, CSS, service worker,
+  404 document, and favicon.
 
-- Clean-clone verification: cloned `be2e78c846e6a8a0a732b0d10add3c65d48e4dc1` into `/tmp/route-clean-qIXRTs`, ran `npm ci`, then each of the 14 commands in `.factory/claims.json`. Every command passed.
-- Local quality gates: `npm test` passed **23** tests; `npm run lint`, `npm run build`, and `npm audit --audit-level=high` passed. The build produced `dist/`; initial JavaScript is 8.26 KB gzip and CSS is 3.99 KB gzip.
-- Accessibility: Playwright axe checks found no serious or critical issues on app routes and `404.html`. The live `/opt/fleet/lib/verify-url.sh` check for `https://route-of-the-day.sociobot.in/?demo=1` passed: title, `lang=en`, one h1, main landmark, image alt text, labeled buttons, and no console errors.
-- Live cold checks after production deployment: `/?demo=1` returned 200 with title **Demo — Route of the Day**, the demo banner, four selected tiles, and no script errors. `/definitely-missing` returned HTTP 404 with title **Page not found — Route of the Day**, one header, one footer, canonical `/404`, and the favicon.
-- Screenshots: `./verification-evidence/polish-1-live-demo.png` and `./verification-evidence/polish-1-live-404.png`.
+Full evidence is in [verification-4.md](verification-4.md).
 
-## Deploy
+## Defects and known gaps
 
-Built `dist/` and deployed it to the production Static Web App `sf-route-of-the-day`. The custom live URL is `https://route-of-the-day.sociobot.in`.
+- Critical: none.
+- High: none.
+- Medium: none.
+- Low: none.
 
-## Known gaps
+The product is static and has no backend API, sign-in, payment, or installable
+PWA manifest. Rate-limit, server concurrency/persistence, health identity, and
+Entra checks are not applicable. No deployment action is required.
 
-None.
+## Re-run
+
+```sh
+npm ci
+node -e "for (const c of require('./.factory/claims.json')) console.log(c.test)"
+npm test
+npm run lint
+npm run build
+npm audit --audit-level=high
+```
