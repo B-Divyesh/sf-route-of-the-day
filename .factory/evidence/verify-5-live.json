@@ -1,0 +1,876 @@
+{
+  "checkedAt": "2026-09-02T01:54:37.438Z",
+  "base": "https://route-of-the-day.sociobot.in",
+  "runs": {
+    "daily": {
+      "seed": "2026-09-02",
+      "rule": {
+        "kind": "checkpoint",
+        "points": [
+          {
+            "row": 3,
+            "col": 2
+          }
+        ]
+      },
+      "solutionLength": 9,
+      "invalidMessage": "Choose a square beside the end of your route.",
+      "losingPath": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 2,
+          "col": 1
+        },
+        {
+          "row": 3,
+          "col": 1
+        },
+        {
+          "row": 4,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 2
+        }
+      ],
+      "lossMessage": "The tile limit is reached. Step back and try another route.",
+      "routeCode": "Published solution: B1–B2–C2–C3–C4–D4–E4–E5–E6",
+      "restartCount": 1,
+      "persistedWinCount": 9,
+      "archiveSeed": "2026-09-01",
+      "archiveCompleted": true,
+      "responseHeaders": {
+        "cache-control": "public, must-revalidate, max-age=30",
+        "content-encoding": "br",
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        "content-type": "text/html",
+        "date": "Wed, 02 Sep 2026 01:54:37 GMT",
+        "etag": "\"07784897\"",
+        "last-modified": "Wed, 02 Sep 2026 01:30:48 GMT",
+        "permissions-policy": "camera=(), microphone=(), geolocation=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+        "vary": "Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "off",
+        "x-xss-protection": "1; mode=block"
+      }
+    },
+    "demo": {
+      "initialTiles": 4,
+      "advancedTiles": 5,
+      "resetTiles": 4,
+      "resetFocusRetained": true,
+      "advancedDemoKeys": [
+        "demo:path:v1:sample-map-7"
+      ],
+      "demoKeysAfterReset": [],
+      "dailySentinelPreserved": true,
+      "demoKeysClearedOnExit": true
+    },
+    "keyboard": {
+      "skipLink": {
+        "text": "Skip to the puzzle",
+        "outline": "rgb(242, 193, 78) solid 3px",
+        "rect": {
+          "x": 8,
+          "y": 8,
+          "width": 158.296875,
+          "height": 48.796875,
+          "top": 8,
+          "right": 166.296875,
+          "bottom": 56.796875,
+          "left": 8
+        }
+      },
+      "completed": true,
+      "finishFocused": true
+    },
+    "inputs": {
+      "pointerDragCompleted": true,
+      "touch390Completed": true
+    },
+    "invalidRecovery": {
+      "corruptPathReset": true,
+      "keyboardStopRetained": true,
+      "infinitePracticeRecoveredToDaily": true,
+      "retainedInvalidQuery": "?practice=1e309",
+      "storageUnavailableMessage": "This route works, but this browser cannot save it after a reload."
+    },
+    "accessibility": {
+      "routes": [
+        {
+          "viewport": "desktop",
+          "route": "/",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Route of the Day — Draw a daily route",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "desktop",
+          "route": "/?demo=1",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Demo — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "desktop",
+          "route": "/privacy",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Privacy — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "desktop",
+          "route": "/terms",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Terms — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "desktop",
+          "route": "/definitely-missing",
+          "status": 404,
+          "severeAxe": [],
+          "structure": {
+            "title": "Page not found — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "route": "/",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Route of the Day — Draw a daily route",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "route": "/?demo=1",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Demo — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "route": "/privacy",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Privacy — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "route": "/terms",
+          "status": 200,
+          "severeAxe": [],
+          "structure": {
+            "title": "Terms — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        },
+        {
+          "viewport": "mobile",
+          "route": "/definitely-missing",
+          "status": 404,
+          "severeAxe": [],
+          "structure": {
+            "title": "Page not found — Route of the Day",
+            "lang": "en",
+            "h1": 1,
+            "main": 1,
+            "header": 1,
+            "footer": 1,
+            "imagesMissingAlt": 0,
+            "overflow": 0,
+            "headingJumps": [],
+            "tooSmall": []
+          }
+        }
+      ],
+      "text200Percent": {
+        "overflow": 0,
+        "h1Visible": true,
+        "gameVisible": true
+      }
+    },
+    "rendering": {
+      "frames": [
+        60,
+        61,
+        61,
+        61,
+        61
+      ],
+      "normalCellTransition": "0.18s, 0.18s",
+      "reducedCellTransition": "1e-05s",
+      "normalFinishAnimation": "0.5s",
+      "reducedFinishAnimation": "1e-05s"
+    },
+    "serviceWorker": {
+      "scope": "https://route-of-the-day.sociobot.in/",
+      "active": "activated",
+      "caches": [
+        "route-of-the-day-v2"
+      ],
+      "controlled": true,
+      "offlineReloadTiles": 4,
+      "offlinePlayTiles": 5
+    }
+  },
+  "errors": [],
+  "expectedConsole": [
+    {
+      "label": "a11y-desktop",
+      "type": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 ()",
+      "pageUrl": "https://route-of-the-day.sociobot.in/definitely-missing"
+    },
+    {
+      "label": "a11y-mobile",
+      "type": "console",
+      "message": "Failed to load resource: the server responded with a status of 404 ()",
+      "pageUrl": "https://route-of-the-day.sociobot.in/definitely-missing"
+    }
+  ],
+  "requestUrls": [
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "daily-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "demo",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/?demo=1",
+      "type": "document"
+    },
+    {
+      "label": "demo",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "demo",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "demo",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "keyboard",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "label": "keyboard",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "keyboard",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "pointer-drag",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "label": "pointer-drag",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "pointer-drag",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "touch-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "touch-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "touch-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "touch-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/?practice=1e309",
+      "type": "document"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "recovery",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "storage-disabled",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "storage-disabled",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "storage-disabled",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "storage-disabled",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/?demo=1",
+      "type": "document"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/privacy",
+      "type": "document"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/terms",
+      "type": "document"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-desktop",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/definitely-missing",
+      "type": "document"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/?demo=1",
+      "type": "document"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/privacy",
+      "type": "document"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/terms",
+      "type": "document"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "a11y-mobile",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/definitely-missing",
+      "type": "document"
+    },
+    {
+      "label": "text-200",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/",
+      "type": "document"
+    },
+    {
+      "label": "text-200",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "text-200",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "text-200",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/route-landscape.webp",
+      "type": "image"
+    },
+    {
+      "label": "motion-normal",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "label": "motion-normal",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "motion-normal",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "motion-reduced",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "label": "motion-reduced",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "motion-reduced",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "service-worker",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "label": "service-worker",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "service-worker",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    },
+    {
+      "label": "service-worker",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/demo",
+      "type": "document"
+    },
+    {
+      "label": "service-worker",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-6-bRPO3P.js",
+      "type": "script"
+    },
+    {
+      "label": "service-worker",
+      "method": "GET",
+      "url": "https://route-of-the-day.sociobot.in/assets/index-BeIPPYuh.css",
+      "type": "stylesheet"
+    }
+  ],
+  "network": {
+    "requestCount": 86,
+    "methods": [
+      "GET"
+    ],
+    "origins": [
+      "https://route-of-the-day.sociobot.in"
+    ],
+    "crossOrigin": []
+  }
+}
