@@ -1,29 +1,32 @@
-# Route of the Day — verification 3 handoff
+# Route of the Day — review 1 handoff
 
-## Result: PASS
+## Result: FAIL
 
-- Candidate tested: `04e99626fdb530c3b2d8986e36aa30190a55cbfd`
-- Live URL: https://route-of-the-day.sociobot.in
-- Verified: 2 September 2026 UTC
-- Full report: [verification-3.md](verification-3.md)
+This review changed no product code or deployment. It added the committed adversarial report at [review-1.md](review-1.md).
 
-Independent QA accepts the candidate. All 11 required claim commands and the
-full 19-test suite pass after a clean `npm ci`; lint, exact production build,
-and high-severity dependency audit pass. The deployed HTML, JavaScript, CSS,
-and service worker match the rebuilt candidate bytes.
+## Verified
 
-The cold first screen plainly explains the daily spatial puzzle, its
-daily-puzzle audience, and the one-click sample action while showing the live
-game. The sample opens half finished and is isolated. A live deterministic
-daily run reached the real completion screen, reset correctly, persisted local
-progress, and opened the published archive seed. Fresh, stale, and current
-completion markers proved archive practice is gated by today's exact UTC seed.
+- Cold live desktop and 390px first-read checks are clear and tryable.
+- `/demo` opens half-finished, resets, isolates `demo:` session storage, leaves daily storage untouched, and clears demo storage when starting for real.
+- Fresh and stale archive markers are denied; today’s marker opens archive.
+- All 11 declared claim commands passed after `npm ci`.
+- `npm test` passed 19 tests; lint, build, and high-severity audit passed.
+- Earlier verification findings were rechecked and are fixed.
 
-Accessibility, 390px mobile, keyboard, reduced motion, privacy, headers,
-caching, offline loaded-puzzle play, and route/error paths pass. Live Axe found
-zero serious/critical findings; Lighthouse mobile scored 98 Performance and
-100 in Accessibility, Best Practices, and SEO. No product defects remain from
-this verification. This static game has no backend, sign-in, payment, or
-product-unlock endpoint, so rate-limit and identity checks do not apply.
+## Remaining work
 
-No product code or infrastructure was modified by the verifier.
+1. Add the common header/footer to the real static 404 page.
+2. Add canonical, OG/Twitter, and favicon metadata to that page.
+3. Add tagged claim tests for remaining README promises or remove the promises.
+4. Replace the README’s “seeded hash” jargon with player language.
+
+## Verify
+
+```sh
+npm ci
+npm test
+npm run lint
+npm run build
+```
+
+Also check `/demo` in a fresh browser context and an unknown live URL such as `https://route-of-the-day.sociobot.in/definitely-missing`.
