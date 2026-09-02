@@ -65,6 +65,7 @@ test('@claim:demo-ready ?demo=1 opens half-finished and resets its isolated samp
   await page.addInitScript(() => localStorage.setItem('route:test-sentinel', 'daily-progress'));
   await page.goto('/?demo=1');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.locator('.date-stamp')).toHaveAttribute('aria-label', 'Sample route sample-map-7');
   await expect(page.locator('.cell.selected')).toHaveCount(4);
   const path = await solution(page);
   await page.locator(`.cell[data-row="${path[4].row}"][data-col="${path[4].col}"]`).click();
