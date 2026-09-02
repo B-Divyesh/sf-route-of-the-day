@@ -36,6 +36,7 @@ Read-aloud check: “Draw today’s spatial route. Try it with sample data.” I
 | Everyone gets the same route for each UTC date. | 9 | Pass; `daily-date` |
 | Practice archive / Play a route from an earlier date | 10 | Pass |
 | Practice uses routes from earlier dates and does not change today’s route. | 12 | Pass; `practice-progress` |
+| Archive practice · not scored | 4 | Pass; `archive-non-scored` |
 | Finish today’s route to open practice mode. | 7 | Pass; `archive-gate` |
 | Build one continuous route | 4 | Pass |
 | Start at the circle / Select one open square beside the last route tile. | 13 | Pass |

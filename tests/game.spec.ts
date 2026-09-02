@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
-import { applyMove, createPuzzle, dailySeed, estimatedRoundSeconds, isComplete, practiceIndex, type Position, type Puzzle } from '../src/core';
+import { applyMove, archiveRoute, createPuzzle, dailySeed, isComplete, nextPracticeIndex, practiceIndex, type Position, type Puzzle } from '../src/core';
 
 async function solution(page: Page): Promise<Position[]> {
   return page.locator('[data-game]').evaluate((element) => JSON.parse(element.getAttribute('data-solution') ?? '[]'));
@@ -65,7 +65,7 @@ test('@claim:demo-ready ?demo=1 opens half-finished and resets its isolated samp
   await page.addInitScript(() => localStorage.setItem('route:test-sentinel', 'daily-progress'));
   await page.goto('/?demo=1');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
-  await expect(page.locator('.date-stamp')).toHaveAttribute('aria-label', 'Sample route sample-map-7');
+  await expect(page.locator('.date-stamp')).toHaveText('Sample routesample-map-7');
   await expect(page.locator('.cell.selected')).toHaveCount(4);
   const path = await solution(page);
   await page.locator(`.cell[data-row="${path[4].row}"][data-col="${path[4].col}"]`).click();
@@ -104,14 +104,6 @@ test('@claim:daily-date the daily route is stable for the UTC date', async ({ br
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   expect(dailySeed(tomorrow)).not.toBe(firstDate);
   await Promise.all([first.close(), second.close()]);
-});
-
-test('@claim:round-duration representative routes meet the documented three-to-five-minute pace', () => {
-  for (let index = 0; index < 100; index += 1) {
-    const seconds = estimatedRoundSeconds(createPuzzle(`duration-${index}`));
-    expect(seconds).toBeGreaterThanOrEqual(180);
-    expect(seconds).toBeLessThanOrEqual(300);
-  }
 });
 
 test('@claim:local-progress progress survives reload in this browser', async ({ page }) => {
@@ -183,6 +175,47 @@ test('@claim:practice-progress archive play uses an earlier date and leaves save
     complete: localStorage.getItem('route:daily-complete:v1'),
   }), todayDate);
   expect(after).toEqual(before);
+});
+
+test('@claim:archive-non-scored archive practice is visibly non-scored and never saves a score', async ({ page }) => {
+  await page.goto('/');
+  const today = await page.locator('[data-game]').getAttribute('data-date');
+  expect(today).toBeTruthy();
+  await page.evaluate((date) => localStorage.setItem('route:daily-complete:v1', date ?? ''), today);
+
+  await page.goto('/?practice=1');
+  await expect(page.locator('.archive-mode span')).toHaveText('Archive practice · not scored');
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-practice', 'true');
+  await solveByClick(page);
+  await expect(page.getByRole('heading', { name: 'Route complete', level: 3 })).toBeVisible();
+
+  const saved = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
+  expect(saved['route:daily-complete:v1']).toBe(today);
+  expect(Object.keys(saved).filter((key) => /score|rank|leaderboard/i.test(key))).toEqual([]);
+});
+
+test('archive stepping at the verifier boundary gives the next requested day its own route', async ({ page }) => {
+  await page.goto('/');
+  const today = await page.locator('[data-game]').getAttribute('data-date');
+  expect(today).toBeTruthy();
+  await page.evaluate((date) => localStorage.setItem('route:daily-complete:v1', date ?? ''), today);
+
+  await page.goto('/?practice=36500');
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-archive-index', '36500');
+  const current = {
+    date: await page.locator('[data-game]').getAttribute('data-date'),
+    seed: await page.locator('[data-game]').getAttribute('data-route-seed'),
+  };
+  await solveByClick(page);
+  await page.getByRole('link', { name: 'Play next archive route' }).click();
+  await expect(page).toHaveURL(/\?practice=36501$/);
+  await expect(page.locator('[data-game]')).toHaveAttribute('data-archive-index', '36501');
+  const next = {
+    date: await page.locator('[data-game]').getAttribute('data-date'),
+    seed: await page.locator('[data-game]').getAttribute('data-route-seed'),
+  };
+  expect(next.date).not.toBe(current.date);
+  expect(next.seed).not.toBe(current.seed);
 });
 
 test('@claim:free-access play starts without an account or payment step', async ({ page }) => {
@@ -340,7 +373,7 @@ test('@claim:reproducible-solution every published date has a known route that c
 test('@claim:date-route-code the game shows the date before play and route code after completion', async ({ page }) => {
   await page.goto('/');
   const date = dailySeed();
-  await expect(page.locator('.date-stamp')).toHaveAttribute('aria-label', `Date ${date}`);
+  await expect(page.locator('.date-stamp')).toHaveText(`Date${date}`);
   const path = await solution(page);
   await solveByClick(page);
   const expectedCode = path.map(({ row, col }) => `${String.fromCharCode(65 + col)}${row + 1}`).join('–');
@@ -391,11 +424,22 @@ test('invalid practice dates recover to the daily route without a page error', a
   await expect(page.locator('[data-game]')).toBeVisible();
   expect(await page.locator('[data-game]').getAttribute('data-date')).toBe(dailySeed());
   expect(errors).toEqual([]);
-  expect(practiceIndex('abc')).toBe(0);
-  expect(practiceIndex('-1')).toBe(0);
-  expect(practiceIndex('0')).toBe(0);
-  expect(practiceIndex('1e309')).toBe(0);
-  expect(practiceIndex('999999')).toBe(36_500);
+  expect(practiceIndex('abc')).toBeNull();
+  expect(practiceIndex('-1')).toBeNull();
+  expect(practiceIndex('0')).toBeNull();
+  expect(practiceIndex('1e309')).toBeNull();
+  expect(practiceIndex('000123')).toBe('123');
+  expect(practiceIndex('999999')).toBe('999999');
+});
+
+test('archive indices are unbounded and retain a unique deterministic route identity', () => {
+  const hugeIndex = '9'.repeat(1_000);
+  expect(practiceIndex(hugeIndex)).toBe(hugeIndex);
+  expect(nextPracticeIndex(hugeIndex)).toBe(`1${'0'.repeat(1_000)}`);
+  const route = archiveRoute(hugeIndex, new Date('2026-09-02T12:00:00Z'));
+  expect(route).toMatchObject({ index: hugeIndex, seed: `archive-${hugeIndex}`, date: null });
+  expect(archiveRoute('36500', new Date('2026-09-02T12:00:00Z')).seed)
+    .not.toBe(archiveRoute('36501', new Date('2026-09-02T12:00:00Z')).seed);
 });
 
 test('invalid saved route arrays reset safely and leave a keyboard focus stop on the board', async ({ page }) => {
@@ -513,6 +557,15 @@ test('routes have one h1, correct titles, no serious axe issues, and no console 
   }
   await expect(page.getByRole('heading', { name: 'Page not found', level: 1 })).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test('game status is not a nested complementary landmark and selected route order is named', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page.locator('aside.route-panel')).toHaveCount(0);
+  await expect(page.locator('.route-panel')).toHaveAttribute('role', 'group');
+  await expect(page.locator('.cell.selected[aria-label*="route tile 1 of"]')).toHaveCount(1);
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations.filter((violation) => violation.id === 'landmark-complementary-is-top-level')).toEqual([]);
 });
 
 test('the 390px layout has no horizontal overflow', async ({ page }) => {

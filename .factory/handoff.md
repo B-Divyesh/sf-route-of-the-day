@@ -1,36 +1,34 @@
-# Route of the Day — independent verification 6 handoff
+# Route of the Day — repair 3 handoff
 
-## Result: FAIL
+## Result: repaired and deployed
 
-Candidate `6d7ea3f18c6a93d9b0123a3e149cb412f19e063a` was independently tested on 2 September 2026 against `https://route-of-the-day.sociobot.in`. The live app matches the fresh candidate build byte-for-byte for all deployed artifacts checked, but the acceptance contract is not met.
+This repair resolves every release-blocking finding in independent verification 6 (`03a32769d8c91a3cc74f75dbd0a09de8de88be8c`) for candidate `6d7ea3f18c6a93d9b0123a3e149cb412f19e063a`. The production deployment is live at https://route-of-the-day.sociobot.in.
 
-## Release blockers
+## What changed
 
-1. The public 3–5 minute claim is tested by multiplying route length by an assumed 20 seconds. It does not measure an observable round duration.
-2. “Non-scored archive practice” appears in the product and README but has no `.factory/claims.json` entry or exact tagged test.
-3. At `?practice=36500`, **Play next archive route** changes the query to 36501 but repeats the same `1926-09-27` route. This conflicts with the brief’s unlimited archive requirement.
+1. Removed the public “three to five minutes” promise and its circular 20-seconds-per-tile test. The product makes no duration claim.
+2. Made archive indexes canonical decimal strings rather than capped numbers. `?practice=36500` now advances to `?practice=36501` with its own UTC-date seed; arbitrary larger indexes use a unique deterministic `archive-<index>` seed when there is no practical calendar label.
+3. Registered **Archive practice is not scored** in `.factory/claims.json` and added its exact `@claim:archive-non-scored` browser test. It observes the visible non-scored mode, unchanged daily completion marker, and no score/ranking storage.
+4. Replaced the nested route-status `<aside>` with a labelled `role="group"`, removed the unsupported `aria-label` from the generic date container, and added the selected route-order number to every selected cell’s accessible name.
+5. Added regression coverage for the verifier’s exact 36,500 → 36,501 reproduction, arbitrary-length archive indexes, the non-scored contract, and the accessibility findings.
 
-Also found: Axe Core 4.11 reports one moderate nested-complementary-landmark issue on game routes, and Lighthouse reports a low-priority experimental label/name mismatch on selected cells.
+## Reproduction evidence
 
-## What passed
+Before the repair, a headless browser completed `?practice=36500` and observed:
 
-- All 17 exact declared claim commands passed after `npm ci`.
-- `npm test`: 26/26 passed.
-- `npm run lint`: passed.
-- `npm run build`: passed and produced `dist/`.
-- `npm audit --audit-level=high`: 0 vulnerabilities.
-- Cold first-read passed at desktop and 390 px; the game is visible and the one-click sample works.
-- Deterministic daily loss/recovery/win/restart/archive flow passed with keyboard, mouse, pointer drag, and touch.
-- Demo isolation, local progress, invalid-input recovery, service-worker update, and offline reload passed.
-- Standard Axe serious/critical findings: 0. Normal-route console/page errors: 0.
-- Lighthouse mobile: Performance 91, Accessibility 100, Best Practices 100, SEO 100; LCP 1.043 s, CLS 0.
-- 390 px, 4× CPU-throttled active route updates: 58.50 fps.
-- Privacy log: only same-origin GET requests with no bodies.
-- Security headers, cache policy, HTTPS redirect, 404 status, and conditional 304 responses passed.
+```json
+{
+  "before": { "url": "?practice=36500", "date": "1926-09-27" },
+  "after": { "url": "?practice=36501", "date": "1926-09-27" },
+  "repeated": true
+}
+```
 
-## Evidence and commands
+After deployment, the same live flow observed `1926-09-27` / seed `1926-09-27` at index `36500`, then `1926-09-26` / seed `1926-09-26` at index `36501`.
 
-Full evidence and remediation details are in `.factory/verification-6.md`. New visual evidence is under `.factory/evidence/verify-6-*`, including first screens, loss, end panel, URL-checker output, and Lighthouse JSON.
+## Verification
+
+Run from a clean install:
 
 ```sh
 npm ci
@@ -40,4 +38,22 @@ npm run build
 npm audit --audit-level=high
 ```
 
-No product code, deployment, infrastructure, DNS, billing, secrets, or unrelated resource was changed.
+- `npm test`: **29/29 passed**. This includes desktop, 390 px touch, keyboard, pointer, offline, service data, privacy, and all accessibility regressions.
+- All **17** exact commands listed in `.factory/claims.json` passed independently. Each claim tag occurs exactly once in the test suite.
+- `npm run lint`: passed.
+- `npm run build`: passed; `dist/` produced. Current initial assets are 23.63 kB raw / 8.50 kB gzip JS and 13.82 kB raw / 3.99 kB gzip CSS. The hero image is 67.44 kB.
+- `npm audit --audit-level=high`: 0 vulnerabilities.
+- `/opt/fleet/lib/verify-url.sh` passed for local production `/` (613 ms) and `/?demo=1` (539 ms), then for live `/` (677 ms) and `/?demo=1` (617 ms): correct route titles, `lang`, one `h1`, one `main`, no missing image alt text, no unlabeled buttons, and no console/page errors.
+- Playwright Axe on live root and demo found no serious or critical issues; `landmark-complementary-is-top-level` is absent and the selected route cell exposes `route tile 1 of …` in its accessible name.
+- Live 390 px browser check has no horizontal overflow. The exact archive-boundary regression passed live with no console errors.
+- Static Web Apps emulator verified the production response policy: HTTP 200, CSP including response-header `frame-ancestors 'none'`, `nosniff`, strict referrer policy, and designed HTTP 404. A production service-worker check confirmed a controlled active worker with no waiting update; an offline demo reload retained four sample tiles and accepted a fifth tile with no errors.
+- Fresh local Lighthouse: Performance **100**, Accessibility **100**, Best Practices **100**, SEO **100**; FCP 951 ms, LCP 1,009 ms, CLS 0, TBT 65.5 ms.
+- Live identity: `index.html` SHA-256 `03a1dac9f567b5fa216257c5a086dacad76a3c27871addd7a27f295bbdbd4ed8` and bundle `assets/index-KZojNDwD.js` SHA-256 `69a788c25ded28406619cd201a134b9ca35c5f7daf66bd284beed8c55214d272` both match the deployed `dist/` files.
+
+## Deployment
+
+Built `dist/` was deployed to the owned production Static Web App `sf-route-of-the-day` in resource group `sociobot` using `swa deploy dist --env production`. The custom production URL serves the matching build.
+
+## Known gaps / next steps
+
+No known release-blocking product gaps. Archive indexes beyond ten million use a numbered deterministic archive seed instead of a human calendar date; this preserves an unbounded, non-repeating archive identity when JavaScript dates are no longer a useful label.

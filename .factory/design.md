@@ -41,7 +41,7 @@ At 390px, secondary prose and the decorative hero crop drop below the game. The 
 
 Players select adjacent road cells to draw one continuous route from Start `●` to Finish `◆`. Pointer drag, tap-by-tap, Enter/Space, and Arrow keys share one deterministic path reducer. Backtracking one cell erases the last step. Crossing blocked cells, revisiting a cell, or exceeding the tile budget gives immediate text and shape feedback. The daily constraint changes among checkpoint, exact-turn, and scenic-cell rules.
 
-Difficulty is controlled by board size and detours: practice starts with 5×5 boards and 7–9 route tiles; the daily board is 6×6 with an 8–10 tile budget. Every generated puzzle is derived from a known solution first, so it is always solvable. A complete run takes about 3–5 minutes.
+Difficulty is controlled by board size and detours: practice starts with 5×5 boards and 7–9 route tiles; the daily board is 6×6 with an 8–10 tile budget. Every generated puzzle is derived from a known solution first, so it is always solvable. No duration is promised because each player’s route planning pace differs.
 
 ## Motion and sound
 

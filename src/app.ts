@@ -1,15 +1,18 @@
 import './styles.css';
 import {
   applyMove,
+  archiveRoute,
   createPuzzle,
   dailySeed,
   describeRule,
+  nextPracticeIndex,
   practiceIndex,
   isComplete,
   isValidPath,
   positionKey,
   routeCode,
   samePosition,
+  type ArchiveRoute,
   type Position,
   type Puzzle,
 } from './core';
@@ -91,14 +94,15 @@ function ruleMarkers(puzzle: Puzzle, position: Position): string {
   return '';
 }
 
-function cellLabel(puzzle: Puzzle, position: Position, selected: boolean, blocked: boolean): string {
+function cellLabel(puzzle: Puzzle, position: Position, selectedIndex: number, blocked: boolean): string {
   const coordinate = `${String.fromCharCode(65 + position.col)}${position.row + 1}`;
-  if (samePosition(position, puzzle.start)) return `${coordinate}, Start, ${selected ? 'route selected' : 'open'}`;
-  if (samePosition(position, puzzle.finish)) return `${coordinate}, Finish, ${selected ? 'route selected' : 'open'}`;
+  const selection = selectedIndex >= 0 ? `route tile ${selectedIndex + 1} of ${puzzle.solution.length}` : 'open';
+  if (samePosition(position, puzzle.start)) return `${coordinate}, Start, ${selection}`;
+  if (samePosition(position, puzzle.finish)) return `${coordinate}, Finish, ${selection}`;
   if (blocked) return `${coordinate}, blocked`;
-  if (puzzle.rule.kind === 'checkpoint' && puzzle.rule.points.some((point) => samePosition(point, position))) return `${coordinate}, ring marker${selected ? ', route selected' : ''}`;
-  if (puzzle.rule.kind === 'scenic' && puzzle.rule.points.some((point) => samePosition(point, position))) return `${coordinate}, tree marker${selected ? ', route selected' : ''}`;
-  return `${coordinate}, ${selected ? 'route selected' : 'open'}`;
+  if (puzzle.rule.kind === 'checkpoint' && puzzle.rule.points.some((point) => samePosition(point, position))) return `${coordinate}, ring marker, ${selection}`;
+  if (puzzle.rule.kind === 'scenic' && puzzle.rule.points.some((point) => samePosition(point, position))) return `${coordinate}, tree marker, ${selection}`;
+  return `${coordinate}, ${selection}`;
 }
 
 function safePath(storage: Storage, key: string, puzzle: Puzzle, fallback: Position[]): Position[] {
@@ -135,25 +139,26 @@ function storageAvailable(storage: Storage): boolean {
   }
 }
 
-function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
+function createGame(puzzle: Puzzle, demo: boolean, archive: ArchiveRoute | null = null): string {
   const storage = demo ? sessionStorage : localStorage;
   const key = `${demo ? 'demo:' : 'route:'}path:v1:${puzzle.seed}`;
   const fallback = demo ? puzzle.solution.slice(0, 4) : [puzzle.start];
   const path = safePath(storage, key, puzzle, fallback);
   const complete = isComplete(puzzle, path);
   const tilesLeft = puzzle.solution.length - path.length;
-  const nextPractice = practice ? practiceIndex(new URLSearchParams(location.search).get('practice')) + 1 : 1;
+  const nextPractice = archive ? nextPracticeIndex(archive.index) : '1';
   const focusPosition = path[path.length - 1];
-  const routeLabel = demo ? 'Sample route' : 'Date';
+  const routeLabel = demo ? 'Sample route' : archive?.date ? 'Date' : archive ? 'Archive seed' : 'Date';
+  const routeValue = demo ? puzzle.seed : archive?.date ?? (archive ? archive.index : puzzle.seed);
   window.__ROUTE_PUZZLE__ = puzzle;
 
-  return `<section class="game-shell" aria-labelledby="puzzle-heading" data-game data-date="${escapeHtml(puzzle.seed)}" data-solution="${escapeHtml(JSON.stringify(puzzle.solution))}" data-storage-key="${escapeHtml(key)}" data-demo="${demo}" data-practice="${practice}">
+  return `<section class="game-shell" aria-labelledby="puzzle-heading" data-game data-date="${escapeHtml(routeValue)}" data-route-seed="${escapeHtml(puzzle.seed)}" data-archive-index="${archive?.index ?? ''}" data-solution="${escapeHtml(JSON.stringify(puzzle.solution))}" data-storage-key="${escapeHtml(key)}" data-demo="${demo}" data-practice="${archive !== null}">
     <div class="game-heading">
       <div>
         <p class="section-kicker">${escapeHtml(puzzle.label)}</p>
         <h2 id="puzzle-heading">Connect Start to Finish</h2>
       </div>
-      <div class="date-stamp" aria-label="${routeLabel} ${escapeHtml(puzzle.seed)}"><span>${routeLabel}</span><strong>${escapeHtml(puzzle.seed)}</strong></div>
+      <p class="date-stamp"><span>${routeLabel}</span><strong>${escapeHtml(routeValue)}</strong></p>
     </div>
     <p class="rule"><span aria-hidden="true">↳</span> ${escapeHtml(describeRule(puzzle))}</p>
     <div class="game-layout">
@@ -166,7 +171,7 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
             const blocked = puzzle.blocked.some((cell) => samePosition(cell, position));
             const start = samePosition(position, puzzle.start);
             const finish = samePosition(position, puzzle.finish);
-            return `<button class="cell${selected ? ' selected' : ''}${blocked ? ' blocked' : ''}${start ? ' start' : ''}${finish ? ' finish' : ''}" type="button" data-row="${position.row}" data-col="${position.col}" aria-label="${cellLabel(puzzle, position, selected, blocked)}" aria-pressed="${selected}" ${blocked ? 'disabled' : ''} tabindex="${samePosition(position, focusPosition) ? '0' : '-1'}">
+            return `<button class="cell${selected ? ' selected' : ''}${blocked ? ' blocked' : ''}${start ? ' start' : ''}${finish ? ' finish' : ''}" type="button" data-row="${position.row}" data-col="${position.col}" aria-label="${cellLabel(puzzle, position, selectedIndex, blocked)}" aria-pressed="${selected}" ${blocked ? 'disabled' : ''} tabindex="${samePosition(position, focusPosition) ? '0' : '-1'}">
               <span class="coordinate" aria-hidden="true">${String.fromCharCode(65 + position.col)}${position.row + 1}</span>
               ${start ? '<span class="landmark start-symbol" aria-hidden="true">●</span>' : ''}
               ${finish ? '<span class="landmark finish-symbol" aria-hidden="true">◆</span>' : ''}
@@ -177,7 +182,7 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
         </div>
         <div class="board-key" aria-hidden="true"><span>● Start</span><span>◆ Finish</span><span>▧ Blocked</span></div>
       </div>
-      <aside class="route-panel" aria-label="Route status">
+      <div class="route-panel" role="group" aria-label="Route status">
         <div class="tile-meter"><span>Tiles left</span><strong data-tiles-left>${tilesLeft}</strong></div>
         <p class="status" data-status aria-live="polite">${complete ? 'Route complete.' : demo ? 'The sample route is half drawn. Continue from the orange tile.' : 'Choose a square beside Start.'}</p>
         <div class="game-actions">
@@ -185,14 +190,14 @@ function createGame(puzzle: Puzzle, demo: boolean, practice: boolean): string {
           <button class="text-button" type="button" data-restart>Restart puzzle</button>
         </div>
         <p class="input-help">Keyboard: use Arrow keys, then Enter or Space. Backspace removes a tile.</p>
-      </aside>
+      </div>
     </div>
     <div class="finish-panel${complete ? '' : ' hidden'}" data-finish tabindex="-1">
       <p class="completion-mark" aria-hidden="true">✓</p>
       <div><h3>Route complete</h3><p>You connected both landmarks in ${puzzle.solution.length} tiles.</p><p class="solution-code">Published solution: <span>${escapeHtml(routeCode(puzzle.solution))}</span></p></div>
       <div class="finish-actions">
         <button class="secondary-button" type="button" data-restart>Play this route again</button>
-        <a class="primary-button" href="/?practice=${nextPractice}" data-route>${practice ? 'Play next archive route' : 'Play an archive route'}</a>
+        <a class="primary-button" href="/?practice=${nextPractice}" data-route>${archive ? 'Play next archive route' : 'Play an archive route'}</a>
       </div>
     </div>
   </section>`;
@@ -203,25 +208,23 @@ function landingPage(): string {
   const requestedPractice = practiceIndex(params.get('practice'));
   const todaySeed = dailySeed();
   const completedDaily = storedValue(localStorage, 'route:daily-complete:v1') === todaySeed;
-  const practice = requestedPractice > 0 && completedDaily;
-  const practiceNumber = practice ? requestedPractice : 0;
-  if (requestedPractice > 0 && !completedDaily) history.replaceState(history.state, '', '/');
-  const archiveDate = new Date();
-  archiveDate.setUTCDate(archiveDate.getUTCDate() - practiceNumber);
-  const seed = practice ? dailySeed(archiveDate) : todaySeed;
-  const puzzle = createPuzzle(seed, practice);
+  const archive = requestedPractice !== null && completedDaily ? archiveRoute(requestedPractice) : null;
+  const practice = archive !== null;
+  if (requestedPractice !== null && !completedDaily) history.replaceState(history.state, '', '/');
+  const puzzle = createPuzzle(archive?.seed ?? todaySeed, practice);
+  if (archive) puzzle.label = archive.label;
 
   return `${header(false)}
     <main id="main">
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">${practice ? 'Practice with a route from an earlier date' : 'A new spatial puzzle every day'}</p>
+          <p class="eyebrow">${practice ? archive?.date ? 'Practice with a route from an earlier date' : 'Practice with an archived route' : 'A new spatial puzzle every day'}</p>
           <h1 tabindex="-1">${practice ? 'Draw an archive route' : 'Draw today’s spatial route'}</h1>
           <p class="hero-summary">For daily-puzzle players who want a short route challenge without words or an account.</p>
           <div class="hero-action"><a class="primary-button" href="/?demo=1" data-route>Try it with sample data</a><span>Opens a half-finished sample puzzle.</span></div>
           <ul class="plain-facts" aria-label="Game facts"><li>Free to play</li><li>No account</li><li>Progress stays in this browser</li></ul>
         </div>
-        <div class="hero-game">${createGame(puzzle, false, practice)}</div>
+        <div class="hero-game">${createGame(puzzle, false, archive)}</div>
       </section>
       ${practice ? `<div class="mode-strip archive-mode"><span>Archive practice · not scored</span><a href="/" data-route>Return to today’s route</a></div>` : ''}
       <figure class="world-strip"><img src="/assets/route-landscape.webp" width="960" height="640" loading="lazy" decoding="async" alt="An abstract orange route connects two landmarks across interlocking map tiles." /><figcaption>Everyone gets the same route for each UTC date.</figcaption></figure>
@@ -250,7 +253,7 @@ function demoPage(): string {
   puzzle.label = 'Sample route';
   return `${demoBanner()}${header(true)}<main id="main" class="demo-main">
     <section class="demo-intro"><p class="eyebrow">One-click sample</p><h1 tabindex="-1">Finish a sample route</h1><p>Continue the half-drawn route. ${escapeHtml(describeRule(puzzle))}</p></section>
-    ${createGame(puzzle, true, false)}
+    ${createGame(puzzle, true)}
     <section class="demo-note"><h2>What happens here</h2><p>This sample uses a separate demo storage key. Starting the daily puzzle clears it.</p></section>
   </main>${footer()}`;
 }
@@ -315,7 +318,7 @@ function bindGame(): void {
       const selected = selectedIndex >= 0;
       cell.classList.toggle('selected', selected);
       cell.setAttribute('aria-pressed', String(selected));
-      cell.setAttribute('aria-label', cellLabel(puzzle, position, selected, cell.classList.contains('blocked')));
+      cell.setAttribute('aria-label', cellLabel(puzzle, position, selectedIndex, cell.classList.contains('blocked')));
       cell.querySelector('.route-order')?.remove();
       if (selected) cell.insertAdjacentHTML('beforeend', `<span class="route-order" aria-hidden="true">${selectedIndex + 1}</span>`);
     });

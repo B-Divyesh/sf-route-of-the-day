@@ -14,13 +14,6 @@
     "sandbox": "two fresh browser contexts; assert the visible UTC date and identical generated solutions"
   },
   {
-    "id": "round-duration",
-    "claim": "A round is designed to take three to five minutes.",
-    "where": "README",
-    "test": "npm test -- --grep @claim:round-duration",
-    "sandbox": "generate representative daily puzzles; assert the documented 20-second-per-tile pace yields 180 to 300 seconds"
-  },
-  {
     "id": "local-progress",
     "claim": "Progress stays in this browser.",
     "where": "landing facts, privacy page, README",
@@ -47,6 +40,13 @@
     "where": "landing archive section, README",
     "test": "npm test -- --grep @claim:practice-progress",
     "sandbox": "save a partial daily route, set today’s completion marker, assert practice=1 uses yesterday’s UTC date, complete it, and assert daily storage is unchanged"
+  },
+  {
+    "id": "archive-non-scored",
+    "claim": "Archive practice is not scored.",
+    "where": "archive practice mode, README",
+    "test": "npm test -- --grep @claim:archive-non-scored",
+    "sandbox": "fresh browser context; unlock practice, complete an archive route, assert the visible non-scored label, unchanged daily marker, and no score or ranking storage key"
   },
   {
     "id": "multi-input",

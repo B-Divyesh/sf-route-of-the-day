@@ -16,6 +16,12 @@ export type Puzzle = {
 };
 
 export type MoveResult = { path: Position[]; message: string; complete: boolean };
+export type ArchiveRoute = {
+  index: string;
+  seed: string;
+  date: string | null;
+  label: string;
+};
 
 const BASE_PATHS: Position[][] = [
   [
@@ -202,21 +208,39 @@ export function applyMove(puzzle: Puzzle, path: Position[], next: Position): Mov
 }
 
 export function dailySeed(date = new Date()): string {
-  return date.toISOString().slice(0, 10);
+  return date.toISOString().split('T')[0];
 }
 
-export function practiceIndex(value: string | null): number {
-  if (value === null || value.trim() === '') return 0;
-  const parsed = Number(value);
-  if (!Number.isSafeInteger(parsed) || parsed < 1) return 0;
-  // Keep archival dates inside the supported JavaScript Date range while
-  // allowing decades of published daily routes.
-  return Math.min(parsed, 36_500);
+export function practiceIndex(value: string | null): string | null {
+  if (value === null || !/^0*[1-9]\d*$/.test(value)) return null;
+  return value.replace(/^0+/, '');
 }
 
-export function estimatedRoundSeconds(puzzle: Puzzle): number {
-  // This is a documented pace target: one considered move per route tile.
-  return puzzle.solution.length * 20;
+export function nextPracticeIndex(index: string): string {
+  let carry = 1;
+  const digits = index.split('');
+  for (let position = digits.length - 1; position >= 0 && carry; position -= 1) {
+    const next = Number(digits[position]) + carry;
+    digits[position] = String(next % 10);
+    carry = next === 10 ? 1 : 0;
+  }
+  return carry ? `1${digits.join('')}` : digits.join('');
+}
+
+export function archiveRoute(index: string, today = new Date()): ArchiveRoute {
+  // A calendar date is useful while it remains a practical archive label. The
+  // index itself remains the route identity, so the archive never repeats or
+  // runs out when a browser date can no longer represent an older day.
+  const dateBackedIndex = Number(index);
+  if (Number.isSafeInteger(dateBackedIndex) && dateBackedIndex <= 10_000_000) {
+    const archiveDate = new Date(`${dailySeed(today)}T00:00:00.000Z`);
+    archiveDate.setUTCDate(archiveDate.getUTCDate() - dateBackedIndex);
+    if (!Number.isNaN(archiveDate.getTime())) {
+      const date = dailySeed(archiveDate);
+      return { index, seed: date, date, label: `Archive route · ${date}` };
+    }
+  }
+  return { index, seed: `archive-${index}`, date: null, label: `Archive route · ${index}` };
 }
 
 export function routeCode(path: Position[]): string {
