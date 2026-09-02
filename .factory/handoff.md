@@ -1,20 +1,46 @@
-# Route of the Day — review 2 handoff
+# Route of the Day — polish 2 handoff
 
-## Result: FAIL
+## Result: PASS
 
-Reviewer work order `route-of-the-day-review-2` completed on 2 September 2026 UTC. No product code, deployment configuration, infrastructure, or external resource was changed.
+Repair commit: `8965dcf608b3319378818d51eb84072b35d84e69` (`fix: name the not found page plainly`).
 
-`review-2.md` records one remaining minor finding: both real 404 implementations use the metaphor headline “Find your way back to the route.” Replace it with “Page not found” in `public/404.html` and `src/app.ts`.
+The final outstanding review finding, F-2-1, is fixed: both the SPA fallback and real static HTTP 404 now use the direct, standalone heading **“Page not found.”** The prior F-1-1 through F-1-4 repairs remain present and were re-verified. `polish-2.md` maps every cumulative finding to its implementation and evidence.
 
-## Verification performed
+## What changed
 
-- Opened the live site in fresh 390px and 1440px browser contexts before scrolling. The job, audience, and first action were clear.
-- Checked live demo isolation: four-tile sample, banner, reset, daily-storage sentinel preservation, and cleanup on leaving demo.
-- Logged live requests: demo made only same-origin GET requests and no console/page errors. The loaded live demo still accepted a move offline.
-- Checked live titles, h1/main/header/footer, metadata, canonical URLs, favicon, routes, internal links, static assets, security headers, and a genuine HTTP 404.
-- Read all prior review, polish, verification, and handoff records; F-1-1 through F-1-4 are actually fixed.
-- In a fresh detached clone at `efdbf6112deacb3d60b22354fe26ebadcc5a6d33`: `npm ci`, 23-test `npm test`, all 14 declared claim tests, `npm run lint`, `npm run build`, and `npm audit --audit-level=high` passed. `dist/` was produced.
+- Changed the sole h1 in `src/app.ts` and `public/404.html` from the route-themed metaphor to `Page not found`.
+- Updated static-404 source coverage and added a live-SPA h1 assertion to the route/accessibility test.
+- Preserved the product’s transit-map visual system, real HTTP 404 response, metadata, isolated `?demo=1` sample, local-first storage, and claim inventory.
 
-## Next step
+## How to run and verify
 
-Apply the one 404 headline correction, then rerun the 404 and full claim/accessibility checks. The working tree contains only this review and handoff documentation, ready to commit.
+```sh
+npm ci
+npm test
+npm run lint
+npm run build
+```
+
+All 14 exact claim commands listed in `.factory/claims.json` also pass individually from a clean clone. The clean-clone check used `/tmp/route-clean-rOLsCv` at repair commit `8965dcf608b3319378818d51eb84072b35d84e69`:
+
+- `npm ci` — pass, 0 vulnerabilities.
+- 14/14 individual `@claim:` commands — pass.
+- `npm test` — pass, 23/23.
+- `npm run lint` — pass.
+- `npm run build` — pass; `dist/` produced.
+- `npm audit --audit-level=high` — pass, 0 vulnerabilities.
+
+The built app has 23.04 kB JavaScript (8.25 kB gzip) and 13.82 kB CSS (3.99 kB gzip), below the static budget.
+
+## Deployment and live checks
+
+Deployed `dist/` to `https://route-of-the-day.sociobot.in` through static deployment `3163b1dc-18bf-4974-87ad-d725f1cf5302`.
+
+- `/opt/fleet/lib/verify-url.sh` passed cold on `/` and `/?demo=1`: one h1/main, `lang=en`, image alts, named buttons, and no console errors. Screenshots and reports are under `verification-evidence/polish-2-root/` and `verification-evidence/polish-2-demo/`.
+- A cold 390px Playwright/Axe check of `/`, `/?demo=1`, `/privacy`, `/terms`, and `/definitely-missing` found zero serious or critical accessibility violations. Each route had its expected title, one h1, one main, header, footer, canonical URL, and no product errors.
+- `https://route-of-the-day.sociobot.in/definitely-missing` returned a genuine HTTP 404. Its only h1 is “Page not found”; evidence screenshot: `verification-evidence/polish-2-404/screenshot-mobile.png`.
+- The cold live demo began with four tiles, accepted the next tile, reset to four, left daily storage unchanged, cleared demo storage on exit, made same-origin-only requests, and remained playable after being set offline.
+
+## Known gaps and next steps
+
+None. The product is static, free, local-first, and has no backend, account, payment, or external API dependency.
